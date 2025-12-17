@@ -10,7 +10,7 @@ search_config = {
 
     # "numero_do_processo_ou_registro_xpath": "xpath=/html body div.container-fluid.p-0 section.conteudo.container-xxl div.wrapper-form-juris.cinza-claro-10 form#frmConsulta div div.row.clsPesquisaAvancada div.col.clsFormularioPesquisa div.row div.col-12.col-md.px-0 div.form-group.has-float-label input#processo.form-control.clearable",
     # "classe_do_processo_xpath": "xpath=/html body div.container-fluid.p-0 section.conteudo.container-xxl div.wrapper-form-juris.cinza-claro-10 form#frmConsulta div div.row.clsPesquisaAvancada div.col.clsFormularioPesquisa div.row div.col-12.col-md.px-0.px-md-2 div.form-group.has-float-label input#classe.form-control.clearable",
-    "Data_de_publicação_inicial_xpath": '//*[@id="dtpb1"]',
-    "Data_de_publicação_final_xpath": '//*[@id="dtpb2"]',
+    "data_de_publicação_inicial_xpath": '//*[@id="dtpb1"]',
+    "data_de_publicação_final_xpath": '//*[@id="dtpb2"]',
 }
 
