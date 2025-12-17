@@ -1,3 +1,4 @@
 __all__ = [
-    "nav",
+    "nav_sync",
+    "nav_async",
 ]

@@ -1,3 +1,4 @@
 __all__ = [
-    "ext",
+    "ext_sync",
+    "ext_async",
 ]
