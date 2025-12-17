@@ -12,10 +12,13 @@
   - [-] strings are not blank
   - [-] data in correct format
   - [-] initial and final data are in order
-- [ ] do a surveilance run to get the info needed
-  - [ ] number of pages
-  - [ ] number of documents
+- [x] do a surveilance run to get the info needed
+  - [x] number of pages
+  - [x] number of documents
 - [ ] asyncronously get the data into temporary files
+  - [ ] visit each page
+  - [ ] get all documents into a list
+  - [ ] get data on each document
   - [ ] csv with a single document (?)
   - [ ] csv with a single page of documents
   - [ ] images
@@ -25,6 +28,7 @@
 
 ## Corner cases
 
+- [>] tabs have 404 page inside
 - [ ] page has 0 documents
 - [ ] pdf link unavailable (?)
 - [ ] document is `recurso repetitivo` (?)
