@@ -19,8 +19,8 @@ def fill_form(
     print(f"  [blue]conteudo[/]: {C.PESQUISA["PESQUISA"]}")
     print(f"  [blue]data de julgamento inicial[/]: {C.PESQUISA["DATA_DE_JULGAMENTO_INICIAL"]}")
     print(f"  [blue]data de julgamento final[/]: {C.PESQUISA["DATA_DE_JULGAMENTO_FINAL"]}")
-    print(f"  [blue]data de publicação inicial[/]: {C.PESQUISA["DATA_DE_PUBLICACAO_INICIAL"]}")
-    print(f"  [blue]data de publicação final[/]: {C.PESQUISA["DATA_DE_PUBLICACAO_FINAL"]}")
+    # print(f"  [blue]data de publicação inicial[/]: {C.PESQUISA["DATA_DE_PUBLICACAO_INICIAL"]}")
+    # print(f"  [blue]data de publicação final[/]: {C.PESQUISA["DATA_DE_PUBLICACAO_FINAL"]}")
     print()
     print(f"[red]Outros campos serão implementados futuramente.[/]")
     print()
@@ -37,8 +37,8 @@ def fill_form(
     criterio_de_pesquisa_xpath = search_config["criterio_de_pesquisa_xpath"]
     data_de_julgamento_inicial_xpath = search_config["data_de_julgamento_inicial_xpath"]
     data_de_julgamento_final_xpath = search_config["data_de_julgamento_final_xpath"]
-    data_de_publicacao_inicial_xpath = search_config["Data_de_publicação_inicial_xpath"]
-    data_de_publicacao_final_xpath = search_config["Data_de_publicação_final_xpath"]
+    # data_de_publicacao_inicial_xpath = search_config["data_de_publicação_inicial_xpath"]
+    # data_de_publicacao_final_xpath = search_config["data_de_publicação_final_xpath"]
 
     page.locator(criterio_de_pesquisa_xpath)\
         .fill(C.PESQUISA["PESQUISA"])
@@ -50,10 +50,10 @@ def fill_form(
     page.locator(data_de_julgamento_final_xpath)\
         .fill(C.PESQUISA["DATA_DE_JULGAMENTO_FINAL"])
 
-    page.locator(data_de_publicacao_inicial_xpath)\
-        .fill(C.PESQUISA["DATA_DE_PUBLICACAO_INICIAL"])
-    page.locator(data_de_publicacao_final_xpath)\
-        .fill(C.PESQUISA["DATA_DE_PUBLICACAO_FINAL"])
+    # page.locator(data_de_publicacao_inicial_xpath)\
+    #     .fill(C.PESQUISA["DATA_DE_PUBLICACAO_INICIAL"])
+    # page.locator(data_de_publicacao_final_xpath)\
+    #     .fill(C.PESQUISA["DATA_DE_PUBLICACAO_FINAL"])
 
     page.locator(criterio_de_pesquisa_xpath)\
         .click() # fix popup appearing
