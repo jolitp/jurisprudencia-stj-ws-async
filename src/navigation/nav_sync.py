@@ -1,7 +1,10 @@
 from ..config import constants as C
 from ..config.parsing import search_config
+from src.extraction import ext_async
 
 import playwright.sync_api._generated
+
+import asyncio
 
 from icecream import ic
 from rich import print
@@ -10,10 +13,6 @@ def fill_form(
     page: playwright.sync_api._generated.Page,
     ):
     ic()
-
-    # "ACORDAOS_1": true,
-    # "ACORDAOS_2": true,
-    # "DECISOES_MONOCRATICAS": true,
 
     print("Preenchendo [blue]formulário[/] da página de pesquisa com os seguints campos:")
     print(f"  [blue]conteudo[/]: {C.PESQUISA["PESQUISA"]}")
@@ -60,4 +59,3 @@ def fill_form(
 
     page.locator(botao_buscar_xpath).click()
 
-    ...

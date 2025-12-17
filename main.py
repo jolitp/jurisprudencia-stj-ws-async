@@ -145,12 +145,13 @@ async def main_pipelined(pipeline):
         async with asyncio.TaskGroup() as tg:
             for item in pipeline:
                 task = tg.create_task(
-                    nav_async.visit_pages(context, item)
+                    nav_async.visit_pages(context, item, console)
                 )
                 tasks.append(task)
 
         results = [task.result() for task in tasks]
         ic(results)
+        await asyncio.sleep(10)
         await browser.close()
 
         ...
