@@ -1,0 +1,37 @@
+{
+    "ACORDAOS_1": true,
+    "ACORDAOS_2": true,
+    "DECISOES_MONOCRATICAS": true,
+
+    "PESQUISA": "pericia",
+
+    "NUMERO_DO_PROCESSO_OU_REGISTRO": "",
+    "CLASSE_DO_PROCESSO": "",
+    "UNIDADE_FEDERATIVA": "",
+
+    "DATA_DE_JULGAMENTO_INICIAL": "01/01/2025",
+    "DATA_DE_JULGAMENTO_FINAL": "10/12/2025",
+    "DATA_DE_PUBLICACAO_INICIAL": "",
+    "DATA_DE_PUBLICACAO_FINAL": "",
+
+    "ORGAO_JULGADOR": {
+        "TURMAS": {
+            "1a": false,
+            "2a": false,
+            "3a": false,
+            "4a": false,
+            "5a": false,
+            "6a": false
+        },
+        "SECOES": {
+            "1a": false,
+            "2a": false,
+            "3a": false
+        },
+        "CORTE_ESPECIAL": false,
+        "PRESIDENCIA": false,
+        "VICE-PRESIDENCIA": false
+    },
+
+    "EMENTA/INDEXACAO": ""
+}
