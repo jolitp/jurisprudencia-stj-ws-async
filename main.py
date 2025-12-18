@@ -7,6 +7,7 @@ from src.utils import browser_utils as bu
 import asyncio
 import time
 import datetime
+import random
 import typer
 import random
 from typing import NamedTuple
@@ -36,23 +37,15 @@ icecream_install()
 
 app = typer.Typer(pretty_exceptions_show_locals=False)
 
-DT_NOW = datetime.datetime.now()
 
-
-#region main command
-@app.command()
-def main(
-    debug: bool = False
-):
-    ic.disable()
-    if debug:
-        ic.enable()
-    ic()
-
+#region get tab info
+def get_tab_info():
+    ic(locals())
     # do a preliminary run to get info on number of documents of each tab
     tab_info = {}
     with sync_playwright() as pw:
         proxy_server = random.choice(C.PROXIES)
+        ic(proxy_server)
         browser = pw.firefox.launch(
             headless=False, # toggle
             # proxy = {
@@ -69,7 +62,7 @@ def main(
         page = context.new_page()
 
         print(f"Navegando para a URL: {C.URL}")
-        page.goto(C.URL)
+        page.goto(C.URL, timeout = 0)
 
         nav_sync.fill_form(page)
         tab_info = ext_sync.get_info_on_tabs(page)
@@ -81,7 +74,26 @@ def main(
                 print(f"[red]Erros na aba {tab}[/]")
 
         browser.close()
-    pipeline = create_pipeline(tab_info)
+        print(f"Fechando navegador.")
+    return tab_info
+    ...
+#endregion get tab info
+
+
+#region main command
+@app.command()
+def main(
+    debug: bool = False
+):
+    ic(locals())
+    ic.disable()
+    if debug:
+        ic.enable()
+
+    tabs_info = get_tab_info()
+    ic(tabs_info)
+    pipeline = create_pipeline(tabs_info)
+    ic(pipeline)
 
     asyncio.run(main_pipelined(pipeline))
 #endregion main command
@@ -96,7 +108,10 @@ async def main_pipelined(pipeline):
         browser = await pw.firefox.launch(
             headless=False,
             # proxy = {
-            #     "server": proxy_server
+            #     "server": proxy_server # giving error:
+# Error: Page.goto: NS_ERROR_UNKNOWN_HOST
+# Call log:
+#   - navigating to "https://processo.stj.jus.br/SCON/", waiting until "load"
             # }
         )
         context = await browser.new_context(
@@ -105,9 +120,9 @@ async def main_pipelined(pipeline):
         tasks = []
         async with asyncio.TaskGroup() as tg:
             for item in pipeline:
-                task = tg.create_task(
-                    nav_async.visit_pages(context, item)
-                )
+                ic(item)
+                # exit()
+                task = tg.create_task(nav_async.visit_pages(context, item))
                 tasks.append(task)
 
         results = [task.result() for task in tasks]
@@ -120,58 +135,54 @@ async def main_pipelined(pipeline):
             data = result['data']
             for d in data:
                 aggregated_results.append(d)
-            # aggregated_results.append(data)
-            # ic(len(data))
-            # elapsed_time = result['elapsed_time']
-
-        # ic(aggregated_results[0][0].keys())
-        # ic(len(aggregated_results))
 
         await browser.close()
 
     header = aggregated_results[0].keys()
-    await load_async.save_to_csv(
-        aggregated_results,
-        header,
-        # tab,
-        script_start_datetime=DT_NOW
-    )
-
-
-    ...
+    await load_sync.save_to_csv(aggregated_results, header)
 #endregion main pipelined
 
 
 #region create pipeline
-def create_pipeline(tab_info):
+def create_pipeline(
+    tabs_info# = dict[str, dict[str, None]]
+    ):
     ic(locals())
 
-    number_of_pages = tab_info["acordaos_1"]["page_num"]
-    pipeline = []
+    ic(type(tabs_info))
+    ic(tabs_info.keys())
+    ic(type(tabs_info["acordaos_1"]))
+
+    single_tab_pipeline = []
+    # for tab in tabs_info:
+    tab = "acordaos_2"
+    # tabs = [ ... for tab in tabs_info ]
+    number_of_pages = tabs_info[tab]["page_num"]
     for current_page_number in range(0, number_of_pages):
         start_doc_number = (current_page_number * C.DOCS_PER_PAGE) + 1
         if current_page_number == number_of_pages:
-            doc_num_last_page = tab_info["acordaos_1"]["doc_num_last_page"]
+            doc_num_last_page = tabs_info[tab]["doc_num_last_page"]
             end_doc_number = start_doc_number + doc_num_last_page
-            # num_docs_on_page = end_doc_number - start_doc_number
         else:
             end_doc_number = start_doc_number + C.DOCS_PER_PAGE - 1
-            # num_docs_on_page = end_doc_number - start_doc_number
 
         data = {
-            "tab": "acordaos_1", # CHANGEME
+            "tab": tab,
             "current_page_number": current_page_number + 1,
             "start_doc_number": start_doc_number,
             "end_doc_number": end_doc_number,
             # "num_docs_on_page": num_docs_on_page
         }
-        pipeline.append(data)
-    return pipeline
+        single_tab_pipeline.append(data)
+    # for current_page_number in range(0, number_of_pages):
+
+    return single_tab_pipeline
     ...
 #endregion create pipeline
 
 
 #region
 if __name__ == "__main__":
+    load_sync.create_directories()
     app()
 #endregion

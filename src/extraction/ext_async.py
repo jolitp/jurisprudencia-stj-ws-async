@@ -7,6 +7,7 @@ from icecream import ic
 from bs4 import BeautifulSoup
 import playwright.async_api._generated
 import bs4
+import asyncio
 
 #region    find 1st element on page
 async def find_1st_el_on_page(page: playwright.async_api._generated.Page,
@@ -55,7 +56,13 @@ async def find_all_elements_on_page(page: playwright.async_api._generated.Page,
 
     html_content = await page.content()
     soup = BeautifulSoup(html_content, 'lxml')
-    return soup.find_all(element_tag, element_attributes)
+    element_found = soup.find_all(element_tag, element_attributes)
+    if not element_found:
+        asyncio.sleep(1)
+        element_found = soup.find_all(element_tag, element_attributes)
+    page.screenshot(path="")
+    ic(element_found)
+    return element_found
 #endregion find all elements on page
 
 

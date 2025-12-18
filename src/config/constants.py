@@ -1,4 +1,5 @@
 import json
+import datetime
 
 DEBUG: bool = False
 # DEBUG: bool = True # toggle
@@ -17,3 +18,11 @@ path = "proxies/free-br-proxies-from-proxyscrape.txt"
 # path = "proxies/free-world-proxies-from-proxyscape.txt"
 with open(path, 'r') as file:
     PROXIES = file.readlines()
+
+DT_NOW = datetime.datetime.now()
+DIRS = {
+    "save_root": "__execucoes__",
+    "current_execution": DT_NOW.strftime("%Y_%m_%d_-_%H_%M_%S"),
+    "debug": "debug",
+    "screenshots": "screenshots"
+}
