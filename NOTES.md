@@ -7,24 +7,30 @@
   - [ ] options (flags)
     - [x] debug flag
     - [ ] number of simultaneous browsers to open
+    - [ ]
 - [x] get data from `pesquisa.json` to get search parameters
 - [-] validade the date in `pesquisa.json` to see if it makes sense
   - [-] strings are not blank
   - [-] data in correct format
   - [-] initial and final data are in order
+  - [ ]
 - [x] do a surveilance run to get the info needed
   - [x] number of pages
   - [x] number of documents
+  - [ ]
 - [x] asyncronously get the data into temporary files
-  - [x] visit each page
-  - [x] get all documents into a list
-  - [x] get data on each document
-  - [-] csv with a single page of documents
-  - [-] csv with a single document (?)
-  - [-] images (?)
+  - [ ] get acordaos 1 tab
+    - [x] visit each page
+    - [x] get all documents into a list
+    - [x] get data on each document
+  - [ ] get acordaos 2 tab
+  - [ ] get decisoes monocraticas
+  - [-] images (*debuging*)
+  - [ ]
 - [x] after all documents have been downloaded:
   - [x] join csv together
-  - [ ] save console to html
+  - [ ] save console to html (*debug*)
+  - [ ]
 
 ## Corner cases
 
