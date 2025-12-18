@@ -9,11 +9,7 @@ import asyncio
 from icecream import ic
 from rich import print
 
-def fill_form(
-    page: playwright.sync_api._generated.Page,
-    ):
-    ic()
-
+def announce_fill_form():
     print("Preenchendo [blue]formulário[/] da página de pesquisa com os seguints campos:")
     print(f"  [blue]conteudo[/]: {C.SEARCH_TERMS["PESQUISA"]}")
     print(f"  [blue]data de julgamento inicial[/]: {C.SEARCH_TERMS["DATA_DE_JULGAMENTO_INICIAL"]}")
@@ -30,6 +26,15 @@ def fill_form(
         print("Acórdãos 2")
     if C.SEARCH_TERMS["DECISOES_MONOCRATICAS"]:
         print("Decisões Monocráticas")
+
+    ...
+
+
+def fill_form(
+    page: playwright.sync_api._generated.Page,
+    ):
+    ic()
+    announce_fill_form()
 
     pesquisa_avancada_xpath = search_config["pesquisa_avancada_xpath"]
     botao_buscar_xpath = search_config["botao_buscar_xpath"]

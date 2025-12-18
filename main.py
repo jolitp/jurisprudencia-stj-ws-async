@@ -12,7 +12,6 @@ from typing import NamedTuple
 from playwright.sync_api import sync_playwright
 from playwright.async_api import async_playwright
 # from rich.traceback import install # using typer's rich, configure there
-# import pretty_errors
 from rich import print
 from rich.console import Console
 from icecream import ic
@@ -44,7 +43,6 @@ DT_NOW = datetime.datetime.now()
 def main(
     debug: bool = False
 ):
-    # print("debug: ", debug)
     ic.disable()
     if debug:
         ic.enable()
@@ -76,7 +74,6 @@ def main(
             if errors:
                 print(f"[red]Erros na aba {tab}[/]")
 
-        # time.sleep(5)
         browser.close()
     pipeline = create_pipeline(tab_info)
 

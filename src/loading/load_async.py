@@ -3,10 +3,10 @@ import os
 import pandas as pd
 from rich import print
 
+
 async def save_to_csv(
     data: list[dict],
     header: list,
-    # tab: str = "aba_undefined",
     script_start_datetime=None):
     dir_str = "__execucoes__/no_date"
     if script_start_datetime:

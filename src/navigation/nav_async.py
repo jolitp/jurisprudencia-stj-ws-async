@@ -26,7 +26,6 @@ async def visit_pages(context, item):
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
     ic(item)
-    console = Console()
     await wait_for_page_to_change_document_number(page, item["current_page_number"])
     await paginate(page, item)
 
@@ -43,7 +42,6 @@ async def visit_pages(context, item):
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
 
-    # await tab_info = ext_sync.get_info_on_tabs(page)
     return {
         "tab": item["tab"],
         "page": item["current_page_number"],
@@ -135,31 +133,13 @@ async def paginate(
     ):
     ic()
 
-    extepcted_initial_current_page_number = item["current_page_number"]
-    # extepcted_initial_num_docs_on_page = item["num_docs_on_page"]
     extepcted_initial_start_doc_number = item["start_doc_number"]
-    extepcted_initial_end_doc_number = item["end_doc_number"]
-    extepcted_initial_tab  = item["tab"]
 
     await page.evaluate(f"navegaForm('{extepcted_initial_start_doc_number}');")
 
-    # ic(locals())
-
-    from rich.console import Console
-    from rich.table import Table
-
-    # table = Table(title=f"compare (page {extepcted_initial_current_page_number})")
-
-    # table.add_column("var", justify="left",  style="cyan", no_wrap=True)
-    # table.add_column("Expected", justify="middle", style="cyan", no_wrap=True)
-    # table.add_column("Actual",   justify="right", style="cyan", no_wrap=True)
-
-
-    count = 0
     while True:
         await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
         await asyncio.sleep(1)
-        count += 1
 
         docs_el = await ext_async.pegar_documentos(page)
         actual_start_doc_on_page = docs_el[0]
@@ -168,60 +148,12 @@ async def paginate(
         actual_start_doc_number_split = actual_start_doc_number.split(' ')
         actual_start_doc_number: int = int(actual_start_doc_number_split[1])
 
-        # table.add_row("start doc number", str(actual_start_doc_number), str(extepcted_initial_start_doc_number))
-
-        # actual_end_doc_on_page = docs_el[-1]
-        # actual_end_doc_number: str = actual_end_doc_on_page\
-        #     .find("div", { "class": "clsNumDocumento" }).text.strip()
-        # actual_end_doc_number_split = actual_end_doc_number.split(' ')
-        # actual_end_doc_number: int = int(actual_end_doc_number_split[1])
-
-        # table.add_row("end doc number", str(actual_end_doc_number), str(extepcted_initial_end_doc_number))
-        # table.add_row("-"*20, "-"*20, "-"*20)
-
         match_start = actual_start_doc_number == extepcted_initial_start_doc_number
-        # match_end = actual_end_doc_number == extepcted_initial_end_doc_number
 
         ic(match_start)
-        # ic(match_end)
-
-        # console = Console()
-        # console.print(table)
-
         if match_start:
             print("Fim da paginação")
             break
-
-        # if count == 30:
-        #     break
-
-    # ic(locals())
-
-
+        ...
+    ...
 #endregion Paginate
-
-
-
-
-# #region get number of pages to traverse
-# async def get_number_of_pages_to_traverse(
-#         page: playwright.sync_api._generated.Page,
-#     ):
-#     ic()
-
-#     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
-
-#     el_attrs = { "class": "clsNumDocumento" }
-#     await page.locator(".clsNumDocumento").first.wait_for(state="visible")
-#     n_doc_el = ext_async.find_1st_el_on_page(page, attributes=el_attrs)
-#     ic(n_doc_el)
-#     # n_doc_el = page.locator(".clsNumDocumento").first
-#     # n_doc_el.wait_for(timeout=C.TIMEOUT)
-#     n_docs = int(ext_async.last_word_from_text(n_doc_el))
-#     ic(n_docs)
-#     n_de_paginas = math.ceil(n_docs / C.DOCS_PER_PAGE)
-
-#     print("get_number_of_pages_to_traverse", locals())
-
-#     return n_de_paginas
-# #endregion
