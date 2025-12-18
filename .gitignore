@@ -1,7 +1,7 @@
 # configuração especifífica deste projeto
 dados/*.csv
 combined_output.csv
-__execucoes_/*
+__execucoes_/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
