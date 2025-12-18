@@ -19,7 +19,7 @@
   - [x] number of documents
   - [ ]
 - [x] asyncronously get the data into temporary files
-  - [ ] get acordaos 1 tab
+  - [x] get acordaos 1 tab
     - [x] visit each page
     - [x] get all documents into a list
     - [x] get data on each document
@@ -30,6 +30,7 @@
 - [x] after all documents have been downloaded:
   - [x] join csv together
   - [ ] save console to html (*debug*)
+  - [ ] copy pesquisa.json to output folder
   - [ ]
 
 ## Corner cases
