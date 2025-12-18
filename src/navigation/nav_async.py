@@ -12,10 +12,11 @@ import playwright.async_api._generated
 
 from icecream import ic
 from rich import print
+from rich.console import Console
 
 
 #region visit pages
-async def visit_pages(context, item, console):
+async def visit_pages(context, item):
     page = await context.new_page()
 
     await page.goto(C.URL)
@@ -25,7 +26,8 @@ async def visit_pages(context, item, console):
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
     ic(item)
-    await wait_for_page_to_change_document_number(page, item["current_page_number"], console)
+    console = Console()
+    await wait_for_page_to_change_document_number(page, item["current_page_number"])
     await paginate(page, item)
 
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
@@ -93,7 +95,6 @@ async def fill_form(
 async def wait_for_page_to_change_document_number(
     page: playwright.async_api._generated.Page,
     page_nubmer,
-    console
     ):
     ic()
 
@@ -101,9 +102,10 @@ async def wait_for_page_to_change_document_number(
 
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
-    await page.locator("#qtdDocsPagina").select_option("50")
+    await page.locator("#qtdDocsPagina").select_option(str(C.DOCS_PER_PAGE))
 
     count = 0
+    console = Console()
     with console.status(
 f"[yellow]Página {page_nubmer}[/]. Mudando o número de [cyan]Docs/Pág[/] de [cyan]10[/] para [cyan]50[/]."):
         while True:
