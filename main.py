@@ -3,6 +3,7 @@ from src.loading import load_async
 from src.navigation import nav_sync
 from src.extraction import ext_sync
 from src.navigation import nav_async
+from src.utils import browser_utils as bu
 import asyncio
 import time
 import datetime
@@ -52,14 +53,19 @@ def main(
     tab_info = {}
     with sync_playwright() as pw:
         proxy_server = random.choice(C.PROXIES)
-        # ic(proxy_server)
         browser = pw.firefox.launch(
             headless=False, # toggle
             # proxy = {
             #     "server": proxy_server
             # }
         )
-        context = browser.new_context(viewport={"width": 960, "height": 1080})
+        context = browser.new_context(
+            viewport={"width": 960, "height": 1080},
+            # is_mobile=True,
+            user_agent=bu.random_user_agent(),
+            geolocation=bu.random_geolocation(),
+            permissions=["geolocation"]
+        )
         page = context.new_page()
 
         print(f"Navegando para a URL: {C.URL}")
