@@ -3,6 +3,9 @@ dados/*.csv
 combined_output.csv
 __execucoes__/
 
+# linux
+.directory
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
