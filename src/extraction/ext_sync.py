@@ -12,7 +12,7 @@ import bs4
 def find_1st_el_on_page(page: playwright.sync_api._generated.Page,
                         element_tag: str = "div",
                         attributes: dict = {}):
-    ic()
+    ic(locals())
 
     html_content = page.content()
     soup = BeautifulSoup(html_content, 'lxml')
@@ -143,9 +143,12 @@ f"[red]Número de documentos na última página não pode ser calculado para aba
 
 
 #region get info on tabs
-def get_info_on_tabs(page: playwright.sync_api._generated.Page):
+def get_info_on_tabs(
+    page: playwright.sync_api._generated.Page
+    ):
+    ic(locals())
+
     page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
-    ic()
 
     # IDs
     # id_aba_sumulas = "campoSUMU"
@@ -164,15 +167,11 @@ def get_info_on_tabs(page: playwright.sync_api._generated.Page):
 
 
 #region    pegar dados do documento (new)
-def pegar_dados_do_documento(doc: bs4.element.Tag,
-                            tab: str = "undefined"):
-    """
-    Coleta os dados relevantes de um documento específico.
-
-    Args:
-        doc: Elemento contendo apenas 1 (um) documento.
-    """
-    ic()
+def pegar_dados_do_documento(
+    doc: bs4.element.Tag,
+    tab: str = "undefined"
+   ):
+    ic(locals())
 
     sections = doc.find_all("div", attrs={ "class": "paragrafoBRS" })
 

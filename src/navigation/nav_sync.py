@@ -27,13 +27,13 @@ def announce_fill_form():
     if C.SEARCH_TERMS["DECISOES_MONOCRATICAS"]:
         print("Decisões Monocráticas")
 
-    ...
 
 
 def fill_form(
     page: playwright.sync_api._generated.Page,
     ):
-    ic()
+    ic(locals())
+
     announce_fill_form()
 
     pesquisa_avancada_xpath = search_config["pesquisa_avancada_xpath"]

@@ -17,6 +17,8 @@ from rich.console import Console
 
 #region visit pages
 async def visit_pages(context, item):
+    ic(locals())
+
     page = await context.new_page()
 
     await page.goto(C.URL)
@@ -25,14 +27,11 @@ async def visit_pages(context, item):
     await fill_form(page)
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
-    ic(item)
     await wait_for_page_to_change_document_number(page, item["current_page_number"])
     await paginate(page, item)
-
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
     docs = await ext_async.pegar_documentos(page)
-    ic(len(docs))
 
     data = []
     for doc in docs:
@@ -56,7 +55,7 @@ async def visit_pages(context, item):
 async def fill_form(
     page: playwright.async_api._generated.Page,
     ):
-    ic()
+    ic(locals())
 
     pesquisa_avancada_xpath = search_config["pesquisa_avancada_xpath"]
     botao_buscar_xpath = search_config["botao_buscar_xpath"]
@@ -94,7 +93,7 @@ async def wait_for_page_to_change_document_number(
     page: playwright.async_api._generated.Page,
     page_nubmer,
     ):
-    ic()
+    ic(locals())
 
     # check_if_tabs_have_documents(page)
 
@@ -131,7 +130,7 @@ async def paginate(
     page: playwright.sync_api._generated.Page,
     item: dict
     ):
-    ic()
+    ic(locals())
 
     extepcted_initial_start_doc_number = item["start_doc_number"]
 

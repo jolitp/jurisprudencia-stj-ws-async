@@ -12,7 +12,7 @@ import bs4
 async def find_1st_el_on_page(page: playwright.async_api._generated.Page,
                         element_tag: str = "div",
                         attributes: dict = {}):
-    ic()
+    ic(locals())
 
     html_content = await page.content()
     soup = BeautifulSoup(html_content, 'lxml')
@@ -21,7 +21,7 @@ async def find_1st_el_on_page(page: playwright.async_api._generated.Page,
 
 
 def last_word_from_text(element: bs4.element.Tag):
-    ic()
+    ic(locals())
 
     return element.get_text().strip().split(" ")[-1]
 
@@ -30,7 +30,7 @@ def last_word_from_text(element: bs4.element.Tag):
 async def get_total_number_of_documents(
         page: playwright.async_api._generated.Page,
     ):
-    ic()
+    ic(locals())
 
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
@@ -51,7 +51,7 @@ async def get_total_number_of_documents(
 async def find_all_elements_on_page(page: playwright.async_api._generated.Page,
                                     element_tag: str = "div",
                                     element_attributes: dict = {}):
-    ic()
+    ic(locals())
 
     html_content = await page.content()
     soup = BeautifulSoup(html_content, 'lxml')
@@ -61,20 +61,13 @@ async def find_all_elements_on_page(page: playwright.async_api._generated.Page,
 
 #region    pegar documentos
 async def pegar_documentos(page: playwright.async_api._generated.Page):
-    """
-    Encontra (usando BeautifulSoup) todos os documentos contidos na página atual.
-
-    Args:
-        page: page do playwright
-    """
-    ic()
+    ic(locals())
 
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
     el_attrs = {"class": "documento"}
     documentos = await find_all_elements_on_page(page, element_attributes=el_attrs)
     return documentos
-    # return documento
 #endregion pegar documentos
 
 
@@ -82,7 +75,7 @@ async def pegar_documentos(page: playwright.async_api._generated.Page):
 async def get_number_of_pages_to_traverse(
         page: playwright.async_api._generated.Page,
     ):
-    ic()
+    ic(locals())
 
     try:
         await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
@@ -122,7 +115,7 @@ async def get_number_of_pages_to_traverse(
 async def get_number_of_docs_in_last_page(
         page: playwright.async_api._generated.Page,
     ):
-    ic()
+    ic(locals())
 
     n_de_paginas = await get_number_of_pages_to_traverse(page)
     el_attrs = { "class": "clsNumDocumento" }

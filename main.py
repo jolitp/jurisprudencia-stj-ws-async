@@ -1,7 +1,7 @@
 import src.config.constants as C
-from src.loading import load_async
-from src.navigation import nav_sync
+from src.loading import load_sync
 from src.extraction import ext_sync
+from src.navigation import nav_sync
 from src.navigation import nav_async
 from src.utils import browser_utils as bu
 import asyncio
@@ -89,6 +89,7 @@ def main(
 
 #region main pipelined
 async def main_pipelined(pipeline):
+    ic(locals())
     async with async_playwright() as pw:
         # proxy_server = random.choice(C.PROXIES)
         # ic(proxy_server)
@@ -143,6 +144,7 @@ async def main_pipelined(pipeline):
 
 #region create pipeline
 def create_pipeline(tab_info):
+    ic(locals())
 
     number_of_pages = tab_info["acordaos_1"]["page_num"]
     pipeline = []
