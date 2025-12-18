@@ -15,20 +15,20 @@ def fill_form(
     ic()
 
     print("Preenchendo [blue]formulário[/] da página de pesquisa com os seguints campos:")
-    print(f"  [blue]conteudo[/]: {C.PESQUISA["PESQUISA"]}")
-    print(f"  [blue]data de julgamento inicial[/]: {C.PESQUISA["DATA_DE_JULGAMENTO_INICIAL"]}")
-    print(f"  [blue]data de julgamento final[/]: {C.PESQUISA["DATA_DE_JULGAMENTO_FINAL"]}")
+    print(f"  [blue]conteudo[/]: {C.SEARCH_TERMS["PESQUISA"]}")
+    print(f"  [blue]data de julgamento inicial[/]: {C.SEARCH_TERMS["DATA_DE_JULGAMENTO_INICIAL"]}")
+    print(f"  [blue]data de julgamento final[/]: {C.SEARCH_TERMS["DATA_DE_JULGAMENTO_FINAL"]}")
     # print(f"  [blue]data de publicação inicial[/]: {C.PESQUISA["DATA_DE_PUBLICACAO_INICIAL"]}")
     # print(f"  [blue]data de publicação final[/]: {C.PESQUISA["DATA_DE_PUBLICACAO_FINAL"]}")
     print()
     print(f"[red]Outros campos serão implementados futuramente.[/]")
     print()
     print(f"Serão coletadas informações de:")
-    if C.PESQUISA["ACORDAOS_1"]:
+    if C.SEARCH_TERMS["ACORDAOS_1"]:
         print("Acórdãos 1")
-    if C.PESQUISA["ACORDAOS_2"]:
+    if C.SEARCH_TERMS["ACORDAOS_2"]:
         print("Acórdãos 2")
-    if C.PESQUISA["DECISOES_MONOCRATICAS"]:
+    if C.SEARCH_TERMS["DECISOES_MONOCRATICAS"]:
         print("Decisões Monocráticas")
 
     pesquisa_avancada_xpath = search_config["pesquisa_avancada_xpath"]
@@ -40,14 +40,14 @@ def fill_form(
     # data_de_publicacao_final_xpath = search_config["data_de_publicação_final_xpath"]
 
     page.locator(criterio_de_pesquisa_xpath)\
-        .fill(C.PESQUISA["PESQUISA"])
+        .fill(C.SEARCH_TERMS["PESQUISA"])
     page.locator(pesquisa_avancada_xpath)\
         .click()
 
     page.locator(data_de_julgamento_inicial_xpath)\
-        .fill(C.PESQUISA["DATA_DE_JULGAMENTO_INICIAL"])
+        .fill(C.SEARCH_TERMS["DATA_DE_JULGAMENTO_INICIAL"])
     page.locator(data_de_julgamento_final_xpath)\
-        .fill(C.PESQUISA["DATA_DE_JULGAMENTO_FINAL"])
+        .fill(C.SEARCH_TERMS["DATA_DE_JULGAMENTO_FINAL"])
 
     # page.locator(data_de_publicacao_inicial_xpath)\
     #     .fill(C.PESQUISA["DATA_DE_PUBLICACAO_INICIAL"])

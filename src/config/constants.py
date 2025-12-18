@@ -8,6 +8,12 @@ DOCS_PER_PAGE = 50
 
 #pesquisa modelo 2 (minha) (from json)
 
-PESQUISA = None
+SEARCH_TERMS = None
 with open('pesquisa.json', 'r') as file:
-    PESQUISA = json.load(file)
+    SEARCH_TERMS = json.load(file)
+
+PROXIES = None
+path = "proxies/free-br-proxies-from-proxyscrape.txt"
+# path = "proxies/free-world-proxies-from-proxyscape.txt"
+with open(path, 'r') as file:
+    PROXIES = file.readlines()

@@ -1,5 +1,6 @@
 import src.config.constants as C
 
+from src.loading import load_async
 from src.navigation import nav_sync
 from src.extraction import ext_sync
 from src.navigation import nav_async
@@ -8,6 +9,7 @@ import asyncio
 import time
 import datetime
 import typer
+import random
 
 from rich import print
 # import playwright
@@ -19,6 +21,8 @@ from playwright.async_api import async_playwright
 from rich.console import Console
 
 from icecream import ic
+
+DT_NOW = datetime.datetime.now()
 
 # import logging
 # def warn(s):
@@ -68,8 +72,13 @@ def main(
     # do a preliminary run to get info on number of documents of each tab
     tab_info = {}
     with sync_playwright() as pw:
+        proxy_server = random.choice(C.PROXIES)
+        # ic(proxy_server)
         browser = pw.firefox.launch(
             headless=False, # toggle
+            # proxy = {
+            #     "server": proxy_server
+            # }
         )
         context = browser.new_context(viewport={"width": 960, "height": 1080})
         page = context.new_page()
@@ -98,24 +107,25 @@ def main(
     #   - document nubmer at the end of page
     #   - number of documents on page
 
+    # TODO move it somewhere else
     number_of_pages = tab_info["acordaos_1"]["page_num"]
     pipeline = []
     for current_page_number in range(0, number_of_pages):
         start_doc_number = (current_page_number * C.DOCS_PER_PAGE) + 1
-        if current_page_number + 1 == number_of_pages:
+        if current_page_number == number_of_pages:
             doc_num_last_page = tab_info["acordaos_1"]["doc_num_last_page"]
-            end_doc_number = start_doc_number + doc_num_last_page - 1
-            num_docs_on_page = end_doc_number - start_doc_number
+            end_doc_number = start_doc_number + doc_num_last_page
+            # num_docs_on_page = end_doc_number - start_doc_number
         else:
-            end_doc_number = start_doc_number + C.DOCS_PER_PAGE
-            num_docs_on_page = end_doc_number - start_doc_number + 1
+            end_doc_number = start_doc_number + C.DOCS_PER_PAGE - 1
+            # num_docs_on_page = end_doc_number - start_doc_number
 
         data = {
             "tab": "acordaos_1", # CHANGEME
             "current_page_number": current_page_number + 1,
             "start_doc_number": start_doc_number,
             "end_doc_number": end_doc_number,
-            "num_docs_on_page": num_docs_on_page
+            # "num_docs_on_page": num_docs_on_page
         }
         pipeline.append(data)
     ic(pipeline)
@@ -135,8 +145,13 @@ def main(
 
 async def main_pipelined(pipeline):
     async with async_playwright() as pw:
+        # proxy_server = random.choice(C.PROXIES)
+        # ic(proxy_server)
         browser = await pw.firefox.launch(
-            headless=False
+            headless=False,
+            # proxy = {
+            #     "server": proxy_server
+            # }
         )
         context = await browser.new_context(
             viewport={"width": 960, "height": 1080}
@@ -150,11 +165,33 @@ async def main_pipelined(pipeline):
                 tasks.append(task)
 
         results = [task.result() for task in tasks]
+
         ic(results)
-        await asyncio.sleep(10)
+        ic(len(results))
+
+        aggregated_results = []
+        for result in results:
+            data = result['data']
+            for d in data:
+                aggregated_results.append(d)
+            # aggregated_results.append(data)
+            # ic(len(data))
+            # elapsed_time = result['elapsed_time']
+
+        # ic(aggregated_results[0][0].keys())
+        # ic(len(aggregated_results))
+
         await browser.close()
 
-        ...
+    header = aggregated_results[0].keys()
+    await load_async.save_to_csv(
+        aggregated_results,
+        header,
+        # tab,
+        script_start_datetime=DT_NOW
+    )
+
+
     ...
 
 if __name__ == "__main__":

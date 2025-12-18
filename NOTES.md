@@ -15,22 +15,22 @@
 - [x] do a surveilance run to get the info needed
   - [x] number of pages
   - [x] number of documents
-- [ ] asyncronously get the data into temporary files
-  - [ ] visit each page
-  - [ ] get all documents into a list
-  - [ ] get data on each document
-  - [ ] csv with a single document (?)
-  - [ ] csv with a single page of documents
-  - [ ] images
-- [ ] after all documents have been downloaded:
-  - [ ] join csv together
+- [x] asyncronously get the data into temporary files
+  - [x] visit each page
+  - [x] get all documents into a list
+  - [x] get data on each document
+  - [-] csv with a single page of documents
+  - [-] csv with a single document (?)
+  - [-] images (?)
+- [x] after all documents have been downloaded:
+  - [x] join csv together
   - [ ] save console to html
 
 ## Corner cases
 
 - [>] tabs have 404 page inside
 - [ ] page has 0 documents
-- [ ] pdf link unavailable (?)
+- [ ] pdf link unavailable (bug?)
 - [ ] document is `recurso repetitivo` (?)
 - [ ]
 
