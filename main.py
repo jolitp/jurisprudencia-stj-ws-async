@@ -114,17 +114,13 @@ async def main_pipelined(
             viewport={"width": 960, "height": 1080}
         )
 
-        semaphore = asyncio.Semaphore(3)
         tasks = []
-        # TODO rethink on how to limit the number of simultaneous tasks
-        # await for maybe?
         async with asyncio.TaskGroup() as tg:
-            async with semaphore:
-                for item in pipeline:
-                    task = tg.create_task(
-                        nav_async.visit_pages(context, item)
-                    )
-                    tasks.append(task)
+            for item in pipeline:
+                task = tg.create_task(
+                    nav_async.visit_pages(context, item)
+                )
+                tasks.append(task)
 
         results = [task.result() for task in tasks]
         ic(len(results))

@@ -72,7 +72,23 @@ async def change_to_tab(
     ...
 
 
+import asyncio
+from functools import wraps
+def request_concurrency_limit_decorator(limit=3):
+    # Bind the default event loop
+    sem = asyncio.Semaphore(limit)
+
+    def executor(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            async with sem:
+                return await func(*args, **kwargs)
+        return wrapper
+    return executor
+
+
 #region visit pages
+@request_concurrency_limit_decorator()
 async def visit_pages(
     context,
     item,
