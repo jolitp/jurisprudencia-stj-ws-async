@@ -1,8 +1,9 @@
 import math
 import src.config.constants as C
 from src.loading import load_sync
-from src.extraction import ext_sync
-from src.navigation import nav_sync
+from src.extraction import ext_async
+# from src.extraction import ext_sync
+# from src.navigation import nav_sync
 from src.navigation import nav_async
 from src.models import models
 from src.utils import browser_utils as bu
@@ -11,7 +12,7 @@ import asyncio
 import random
 import typer
 import random
-from playwright.sync_api import sync_playwright
+# from playwright.sync_api import sync_playwright
 from playwright.async_api import async_playwright
 # from rich.traceback import install # using typer's rich, configure there
 from rich import print
@@ -38,27 +39,28 @@ app = typer.Typer(pretty_exceptions_show_locals=False)
 
 
 #region get tab info
-def get_tab_info():
+async def get_tab_info():
     ic(locals())
     # do a preliminary run to get info on number of documents of each tab
     tab_info = {}
-    with sync_playwright() as pw:
-        browser = pw.firefox.launch(
+    async with async_playwright() as pw:
+        browser = await pw.firefox.launch(
             headless=False, # toggle
         )
-        context = browser.new_context(
+        context = await browser.new_context(
             viewport={"width": 960, "height": 1080},
             user_agent=bu.random_user_agent(),
             geolocation=bu.random_geolocation(),
             permissions=["geolocation"]
         )
-        page = context.new_page()
+        page = await context.new_page()
 
         print(f"Navegando para a URL: {C.URL}")
-        page.goto(C.URL, timeout = 0)
+        await page.goto(C.URL, timeout = 0)
 
-        nav_sync.fill_form(page)
-        tab_info = ext_sync.get_info_on_tabs(page)
+        await nav_async.fill_form(page)
+        tab_info = await ext_async.get_info_on_tabs(page)
+        ic(tab_info)
 
         tabs = ["acordaos_1", "acordaos_2", 'decisoes_monocraticas']
         for tab in tabs:
@@ -83,7 +85,7 @@ def main(
     if debug:
         ic.enable()
 
-    tabs_info = get_tab_info()
+    tabs_info = asyncio.run(get_tab_info())
     ic(tabs_info)
     pipeline = create_pipeline(tabs_info)
     ic(pipeline)

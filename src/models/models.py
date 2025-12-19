@@ -23,5 +23,5 @@ class TabData(BaseModel):
     doc_num: int | None
     page_num: int | None
     doc_num_last_page: int | None
-    is_active: int | None
+    is_active: bool | None
     errors: list | None

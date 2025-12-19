@@ -1,13 +1,14 @@
 import math
 import src.config.constants as C
 
-from src.extraction import ext_sync, ext_async
-from src.navigation import nav_sync
+# from src.extraction import ext_sync
+from src.extraction import ext_async
+from src.extraction import ext_sync
+# from src.navigation import nav_sync
 from src.config import constants as C
 from src.config.parsing import search_config
 from src.models import models
 
-from pydantic import BaseModel
 import asyncio
 import time
 import playwright.async_api._generated
