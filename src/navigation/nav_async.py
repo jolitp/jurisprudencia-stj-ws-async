@@ -17,8 +17,46 @@ from rich import print
 from rich.console import Console
 
 
+async def change_to_tab(
+        page: playwright.async_api._generated.Page,
+        item,
+        tabs_info
+    ):
+    ic(locals())
+
+    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+
+    # tab_id = item.tab
+    # ic(tab_id)
+
+    # locator = tabs_info[tab_id].locator
+    # ic(vars(locator))
+    # el_selector = locator._impl_obj
+
+    # locator = await page.locator(el_selector)
+    # await locator.click()
+
+    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+
+
+    ic("stopped here")
+
+    # tabs = await ext_async.get_info_on_tabs(page)
+    # proxima_aba = tabs["Next"]["Locator"]
+    # nome_proxima_aba = tabs["Next"]["Name"]
+    # if proxima_aba is None:
+    #     return
+
+    # print(f"Mudando para próxima aba: [blue]{nome_proxima_aba}[/]")
+    # proxima_aba.click()
+
+
 #region visit pages
-async def visit_pages(context, item):
+async def visit_pages(
+    context,
+    item,
+    tabs_info
+    ):
     ic(locals())
 
     page = await context.new_page()
@@ -29,8 +67,8 @@ async def visit_pages(context, item):
     await fill_form(page)
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
-
     # TODO change to correct tab
+    await change_to_tab(page, item, tabs_info)
 
     await wait_for_page_to_change_document_number(page, item.current_page_number)
     await paginate(page, item)

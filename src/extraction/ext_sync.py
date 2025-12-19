@@ -131,8 +131,6 @@ f"[red]Número de documentos na última página não pode ser calculado para aba
 
     def get_locator(self):
         locator = self.page.locator(f"id={self.id}")
-        # ic(type(locator))
-        # exit()
         return locator
 
     def is_it_active(self):

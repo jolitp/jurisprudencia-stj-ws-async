@@ -88,10 +88,8 @@ def main(
     pipeline = create_pipeline(tabs_info)
     ic(pipeline)
 
-    exit()
-
     if pipeline:
-        aggregated_results = asyncio.run(main_pipelined(pipeline))
+        aggregated_results = asyncio.run(main_pipelined(pipeline, tabs_info))
         header = aggregated_results[0].keys()
         load_sync.save_to_csv(aggregated_results, header)
     else:
@@ -101,7 +99,8 @@ def main(
 
 #region main pipelined
 async def main_pipelined(
-        pipeline: list[dict]
+        pipeline: list[dict],
+        tabs_info: dict
     ):
     ic(locals())
 
@@ -119,7 +118,7 @@ async def main_pipelined(
             async with semaphore:
                 for item in pipeline:
                     task = tg.create_task(
-                        nav_async.visit_pages(context, item)
+                        nav_async.visit_pages(context, item, tabs_info)
                     )
                     tasks.append(task)
 

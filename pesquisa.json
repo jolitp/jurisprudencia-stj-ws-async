@@ -1,6 +1,6 @@
 {
-    "ACORDAOS_1": false,
-    "ACORDAOS_2": true,
+    "ACORDAOS_1": true,
+    "ACORDAOS_2": false,
     "DECISOES_MONOCRATICAS": false,
 
     "PESQUISA": "pericia",
