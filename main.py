@@ -3,26 +3,24 @@ from src.loading import load_sync
 from src.extraction import ext_sync
 from src.navigation import nav_sync
 from src.navigation import nav_async
+from src.models import models
 from src.utils import browser_utils as bu
+
 import asyncio
-import time
-import datetime
 import random
 import typer
 import random
-from typing import NamedTuple
 from playwright.sync_api import sync_playwright
 from playwright.async_api import async_playwright
 # from rich.traceback import install # using typer's rich, configure there
 from rich import print
-from rich.console import Console
 from icecream import ic
 
 # import logging
 # def warn(s):
 #     logging.warning("%s", s)
 # def toString(obj):
-#    if isinstance(obj, str):
+#    if isinstance(obj, str)
 #        return '[!string %r with length %i!]' % (obj, len(obj))
 #    return repr(obj)
 ic.configureOutput(
@@ -69,7 +67,8 @@ def get_tab_info():
 
         tabs = ["acordaos_1", "acordaos_2", 'decisoes_monocraticas']
         for tab in tabs:
-            errors = tab_info[tab]["errors"]
+            # errors = tab_info[tab]["errors"]
+            errors = tab_info[tab].errors
             if errors:
                 print(f"[red]Erros na aba {tab}[/]")
 
@@ -95,7 +94,9 @@ def main(
     pipeline = create_pipeline(tabs_info)
     ic(pipeline)
 
-    asyncio.run(main_pipelined(pipeline))
+    aggregated_results = asyncio.run(main_pipelined(pipeline))
+    header = aggregated_results[0].keys()
+    load_sync.save_to_csv(aggregated_results, header)
 #endregion main command
 
 
@@ -120,26 +121,19 @@ async def main_pipelined(pipeline):
         tasks = []
         async with asyncio.TaskGroup() as tg:
             for item in pipeline:
-                ic(item)
-                # exit()
                 task = tg.create_task(nav_async.visit_pages(context, item))
                 tasks.append(task)
 
         results = [task.result() for task in tasks]
 
-        ic(results)
-        ic(len(results))
-
         aggregated_results = []
         for result in results:
-            data = result['data']
+            data = result.data
             for d in data:
                 aggregated_results.append(d)
 
         await browser.close()
-
-    header = aggregated_results[0].keys()
-    await load_sync.save_to_csv(aggregated_results, header)
+    return aggregated_results
 #endregion main pipelined
 
 
@@ -155,29 +149,27 @@ def create_pipeline(
 
     single_tab_pipeline = []
     # for tab in tabs_info:
-    tab = "acordaos_2"
+    tab = "acordaos_1"
     # tabs = [ ... for tab in tabs_info ]
-    number_of_pages = tabs_info[tab]["page_num"]
+    number_of_pages = tabs_info[tab].page_num
     for current_page_number in range(0, number_of_pages):
         start_doc_number = (current_page_number * C.DOCS_PER_PAGE) + 1
         if current_page_number == number_of_pages:
-            doc_num_last_page = tabs_info[tab]["doc_num_last_page"]
+            doc_num_last_page = tabs_info[tab].doc_num_last_page
             end_doc_number = start_doc_number + doc_num_last_page
         else:
             end_doc_number = start_doc_number + C.DOCS_PER_PAGE - 1
 
-        data = {
-            "tab": tab,
-            "current_page_number": current_page_number + 1,
-            "start_doc_number": start_doc_number,
-            "end_doc_number": end_doc_number,
-            # "num_docs_on_page": num_docs_on_page
-        }
+        data = models.Pipeline(
+            tab = tab,
+            current_page_number = current_page_number + 1,
+            start_doc_number = start_doc_number,
+            end_doc_number = end_doc_number,
+        )
         single_tab_pipeline.append(data)
     # for current_page_number in range(0, number_of_pages):
 
     return single_tab_pipeline
-    ...
 #endregion create pipeline
 
 

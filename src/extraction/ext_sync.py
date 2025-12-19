@@ -1,4 +1,5 @@
 import src.config.constants as C
+from src.models import models
 
 import math
 from bs4 import BeautifulSoup
@@ -9,9 +10,11 @@ import bs4
 
 
 #region    find 1st element on page
-def find_1st_el_on_page(page: playwright.sync_api._generated.Page,
-                        element_tag: str = "div",
-                        attributes: dict = {}):
+def find_1st_el_on_page(
+        page: playwright.sync_api._generated.Page,
+        element_tag: str = "div",
+        attributes: dict = {}
+    ):
     ic(locals())
 
     html_content = page.content()
@@ -30,8 +33,11 @@ class NotFound404Error(Exception):
 
 
 #region Tab Data Class
-class TabData:
-    def __init__(self, id, page):
+class TabProcessor:
+    def __init__(self,
+                id: str,
+                page: playwright.sync_api._generated.Page,
+                ):
         self.id = id
         self.page = page
         self.name = None
@@ -56,15 +62,15 @@ class TabData:
         self.doc_num_last_page = self.get_doc_num_on_last_page()
         self.is_active = self.is_it_active()
 
-        self.dict = {
-            "name": self.text,
-            "locator": self.locator,
-            "doc_num": self.doc_num,
-            "page_num": self.page_num,
-            "doc_num_last_page": self.doc_num_last_page,
-            "is_active": self.is_active,
-            "errors": self.errors
-        }
+        self.data = models.TabData(
+            name = self.text,
+            locator = self.locator,
+            doc_num = self.doc_num,
+            page_num = self.page_num,
+            doc_num_last_page = self.doc_num_last_page,
+            is_active = self.is_active,
+            errors = self.errors
+        )
 
     def get_text(self):
         html_content = self.page.content()
@@ -77,9 +83,6 @@ class TabData:
                                 f"texto na aba:\n{result}"))
             result = (None, "404 page")
             print(f"[red]Erro 404 não encontrado em aba {self.name}[/]")
-
-        ic(vars(self))
-
         return result
 
     def get_doc_num(self):
@@ -92,8 +95,6 @@ class TabData:
         except ValueError:
             print(
 f"[red]Não foi possível retirar o número de documentos da aba {self.name}[/]")
-            # ic(locals())
-            # ic(vars(self))
         finally:
             return tab_doc_num
 
@@ -109,8 +110,6 @@ f"[red]Não foi possível retirar o número de documentos da aba {self.name}[/]"
                     math.ceil(self.get_doc_num() / C.DOCS_PER_PAGE)
         except ValueError:
             print(f"[red]Número de documentos não encontrado na aba {self.name}[/]")
-            # ic(locals())
-            # ic(vars(self))
         finally:
             return page_num
 
@@ -129,12 +128,13 @@ f"[red]Não foi possível retirar o número de documentos da aba {self.name}[/]"
             print(
 f"[red]Número de documentos na última página não pode ser calculado para aba {self.name}[/]")
             doc_num_on_last_page = None
-            # ic(locals())
-            # ic(vars(self))
             return None
 
     def get_locator(self):
-        return self.page.locator(f"id={self.id}"),
+        locator = self.page.locator(f"id={self.id}")
+        # ic(type(locator))
+        # exit()
+        return locator
 
     def is_it_active(self):
         aba_el = find_1st_el_on_page(self.page, "div", attributes={"id": self.id})
@@ -144,7 +144,7 @@ f"[red]Número de documentos na última página não pode ser calculado para aba
 
 #region get info on tabs
 def get_info_on_tabs(
-    page: playwright.sync_api._generated.Page
+        page: playwright.sync_api._generated.Page
     ):
     ic(locals())
 
@@ -152,25 +152,25 @@ def get_info_on_tabs(
 
     # IDs
     # id_aba_sumulas = "campoSUMU"
-    acordaos_1_data = TabData("campoACOR", page)
-    # ic(vars(acordaos_1_data))
-    acordaos_2_data = TabData("campoBAEN", page)
-    decisoes_monocraticas_data = TabData("campoDTXT", page)
+    acordaos_1_data = TabProcessor("campoACOR", page)
+    acordaos_2_data = TabProcessor("campoBAEN", page)
+    decisoes_monocraticas_data = TabProcessor("campoDTXT", page)
 
     result = {
-        "acordaos_1": acordaos_1_data.dict,
-        "acordaos_2": acordaos_2_data.dict,
-        "decisoes_monocraticas": decisoes_monocraticas_data.dict,
+        "acordaos_1": acordaos_1_data.data,
+        "acordaos_2": acordaos_2_data.data,
+        "decisoes_monocraticas": decisoes_monocraticas_data.data,
     }
     return result
 #endregion
 
 
+# TODO cleanup
 #region    pegar dados do documento (new)
 def pegar_dados_do_documento(
-    doc: bs4.element.Tag,
-    tab: str = "undefined"
-   ):
+        doc: bs4.element.Tag,
+        tab: str = "undefined"
+    ):
     ic(locals())
 
     sections = doc.find_all("div", attrs={ "class": "paragrafoBRS" })

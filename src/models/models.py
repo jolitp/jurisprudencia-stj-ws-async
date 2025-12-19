@@ -1,0 +1,27 @@
+from pydantic import BaseModel
+import typing
+from playwright.sync_api._generated import Locator
+
+
+class Pipeline(BaseModel):
+    tab: str
+    current_page_number: int
+    start_doc_number: int
+    end_doc_number: int
+
+
+class PageData(BaseModel):
+    tab: str
+    page_number: int
+    data: list
+    elapsed_time: float
+
+
+class TabData(BaseModel):
+    name: str
+    locator: typing.Any
+    doc_num: int
+    page_num: int
+    doc_num_last_page: int
+    is_active: int
+    errors: list

@@ -9,6 +9,7 @@ import asyncio
 from icecream import ic
 from rich import print
 
+#region annouce fill form
 def announce_fill_form():
     print("Preenchendo [blue]formulário[/] da página de pesquisa com os seguints campos:")
     print(f"  [blue]conteudo[/]: {C.SEARCH_TERMS["PESQUISA"]}")
@@ -26,11 +27,12 @@ def announce_fill_form():
         print("Acórdãos 2")
     if C.SEARCH_TERMS["DECISOES_MONOCRATICAS"]:
         print("Decisões Monocráticas")
+#endregion annouce fill form
 
 
-
+#region fill form
 def fill_form(
-    page: playwright.sync_api._generated.Page,
+        page: playwright.sync_api._generated.Page,
     ):
     ic(locals())
 
@@ -63,4 +65,5 @@ def fill_form(
         .click() # fix popup appearing
 
     page.locator(botao_buscar_xpath).click()
+#endregion fill form
 

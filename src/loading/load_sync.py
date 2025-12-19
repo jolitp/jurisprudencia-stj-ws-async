@@ -5,33 +5,36 @@ from rich import print
 from icecream import ic
 
 
-#region create directories
-def create_directories():
-    # TODO use pathlib
+#region get path
+def get_path():
     search_terms = C.SEARCH_TERMS["PESQUISA"]
     root = C.DIRS["save_root"]
     current_dir = C.DIRS["current_execution"]
     dir_path = f"{root}/{ current_dir } - { search_terms }"
+    return dir_path
+    ...
+#endregion get path
+
+
+#region create directories
+def create_directories():
+    # TODO use pathlib
+    dir_path = get_path()
     debug_path = C.DIRS["debug"]
     screenshots_path = f"{dir_path}/{debug_path}/{C.DIRS["screenshots"]}"
-    try:
-        os.makedirs(screenshots_path, exist_ok=True)
-    except Exception as e:
-        print("[red]Erro ao criar diretórios.")
-        ic(repr(e))
-        ...
-    ic(locals())
+    ic(screenshots_path)
+    os.makedirs(screenshots_path, exist_ok=True)
+
     return dir_path
-#endregion
+#endregion create directories
 
 
 #region save to csv
 def save_to_csv(
     data: list[dict],
     header: list,
-    script_start_datetime=None
     ):
-    dir_str = create_directories(script_start_datetime)
+    dir_str = get_path()
     csv_filename = "dados.csv"
 
     print(f"Salvando [blue]{csv_filename}[/] em [blue]{dir_str}[/]")

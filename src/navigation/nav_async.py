@@ -3,9 +3,11 @@ import src.config.constants as C
 
 from src.extraction import ext_sync, ext_async
 from src.navigation import nav_sync
-from ..config import constants as C
-from ..config.parsing import search_config
+from src.config import constants as C
+from src.config.parsing import search_config
+from src.models import models
 
+from pydantic import BaseModel
 import asyncio
 import time
 import playwright.async_api._generated
@@ -27,7 +29,7 @@ async def visit_pages(context, item):
     await fill_form(page)
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
-    await wait_for_page_to_change_document_number(page, item["current_page_number"])
+    await wait_for_page_to_change_document_number(page, item.current_page_number)
     await paginate(page, item)
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
@@ -35,18 +37,19 @@ async def visit_pages(context, item):
 
     data = []
     for doc in docs:
-        result = ext_sync.pegar_dados_do_documento(doc, tab = item["tab"])
+        result = ext_sync.pegar_dados_do_documento(doc, tab = item.tab)
         data.append(result)
 
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
 
-    return {
-        "tab": item["tab"],
-        "page": item["current_page_number"],
-        "data": data,
-        "elapsed_time": elapsed_time
-    }
+    result = models.PageData(
+        tab = item.tab,
+        page_number = item.current_page_number,
+        data = data,
+        elapsed_time = elapsed_time
+    )
+    return result
     ...
 #endregion
 
@@ -87,15 +90,12 @@ async def fill_form(
 #endregion
 
 
-
 #region wait for page to change document number
 async def wait_for_page_to_change_document_number(
     page: playwright.async_api._generated.Page,
     page_nubmer,
     ):
     ic(locals())
-
-    # check_if_tabs_have_documents(page)
 
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
@@ -124,7 +124,6 @@ f"[yellow]Página {page_nubmer}[/]. Mudando o número de [cyan]Docs/Pág[/] de [
 #endregion
 
 
-
 #region    Paginate
 async def paginate(
     page: playwright.sync_api._generated.Page,
@@ -132,7 +131,7 @@ async def paginate(
     ):
     ic(locals())
 
-    extepcted_initial_start_doc_number = item["start_doc_number"]
+    extepcted_initial_start_doc_number = item.start_doc_number
 
     await page.evaluate(f"navegaForm('{extepcted_initial_start_doc_number}');")
 
