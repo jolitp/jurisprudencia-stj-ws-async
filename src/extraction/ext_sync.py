@@ -116,13 +116,12 @@ f"[red]Não foi possível retirar o número de documentos da aba {self.name}[/]"
     def get_doc_num_on_last_page(self):
         doc_num_on_last_page = None
         try:
-            if self.get_doc_num() == 0:
+            if self.doc_num == 0:
                 doc_num_on_last_page = 0
-            elif self.get_doc_num() <= C.DOCS_PER_PAGE:
-                doc_num_on_last_page = 0
+            elif self.doc_num <= C.DOCS_PER_PAGE:
+                doc_num_on_last_page = self.doc_num
             else:
-                doc_num_on_last_page = \
-                    math.fmod(self.get_doc_num(), C.DOCS_PER_PAGE)
+                doc_num_on_last_page = math.fmod(self.doc_num, C.DOCS_PER_PAGE)
             return int(doc_num_on_last_page)
         except TypeError:
             print(

@@ -88,6 +88,8 @@ def main(
     pipeline = create_pipeline(tabs_info)
     ic(pipeline)
 
+    exit()
+
     if pipeline:
         aggregated_results = asyncio.run(main_pipelined(pipeline))
         header = aggregated_results[0].keys()
@@ -114,35 +116,22 @@ async def main_pipelined(
         semaphore = asyncio.Semaphore(10)
         tasks = []
         async with asyncio.TaskGroup() as tg:
-            def chunk_list(lst, n):
-                """Yield successive n-sized chunks from lst."""
-                for i in range(0, len(lst), n):
-                    yield lst[i:i + n]
-
-            # chunk_size = math.ceil(len(pipeline) / 3)
-            chunk_size = 3
-            pipeline_chunks = list(chunk_list(pipeline, chunk_size))
-
-            ic(len(pipeline_chunks))
-            for pipeline_chunk in list(pipeline_chunks):
-                ic(len(list(pipeline_chunk)))
-
-                delay = random.uniform(1, 3)
-                for item in pipeline_chunk:
+            async with semaphore:
+                for item in pipeline:
                     task = tg.create_task(
-                        nav_async.visit_pages(context, item, delay)
+                        nav_async.visit_pages(context, item)
                     )
                     tasks.append(task)
 
         results = [task.result() for task in tasks]
-        ic(results)
         ic(len(results))
 
         aggregated_results = []
         for result in results:
-            data = result.data
-            for d in data:
-                aggregated_results.append(d)
+            if result:
+                data = result.data
+                for d in data:
+                    aggregated_results.append(d)
 
         await browser.close()
     return aggregated_results
@@ -155,8 +144,16 @@ def create_pipeline(
     ):
     ic(locals())
 
+    should_get_from_tab = {
+        "acordaos_1": C.SEARCH_TERMS["ACORDAOS_1"],
+        "acordaos_2": C.SEARCH_TERMS["ACORDAOS_2"],
+        "decisoes_monocraticas": C.SEARCH_TERMS["DECISOES_MONOCRATICAS"],
+    }
+
     pipeline = []
-    for key, value in tabs_info.items():
+    for key, _ in tabs_info.items():
+        if not should_get_from_tab[key]:
+            continue
         number_of_pages = tabs_info[key].page_num
 
         if number_of_pages == 0:
@@ -171,6 +168,9 @@ def create_pipeline(
                     end_doc_number = start_doc_number + doc_num_last_page
                 else:
                     end_doc_number = start_doc_number + C.DOCS_PER_PAGE - 1
+                if number_of_pages == 1:
+                    doc_num_last_page = tabs_info[key].doc_num_last_page
+                    end_doc_number = start_doc_number + doc_num_last_page - 1
 
                 data = models.Pipeline(
                     tab = key,
@@ -185,7 +185,6 @@ def create_pipeline(
 "[red]Não foi possível completar a execução. Número de páginas não foi encontrado[/]")
             ic(locals())
             ic(repr(e))
-            exit()
 
     ic(locals())
     return pipeline
