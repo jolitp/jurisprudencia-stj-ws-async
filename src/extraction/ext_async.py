@@ -28,7 +28,7 @@ class TabProcessor:
                 # page: playwright.sync_api._generated.Page,
                 html_content: str
                 ):
-        self.id = id
+        self.element_id = id
         # self.page = page
         self.name = None
         self.html_content = html_content
@@ -59,20 +59,23 @@ class TabProcessor:
         is_active = await self.is_it_active(page)
 
         return models.TabData(
-            name = self.text,
+            element_id = self.element_id,
+            name = self.name,
+            text = self.text,
             locator = locator,
             doc_num = self.doc_num,
             page_num = self.page_num,
             doc_num_last_page = self.doc_num_last_page,
             is_active = is_active,
-            errors = self.errors
+            errors = self.errors,
+            html_content = self.html_content
         )
 
     def get_text(self):
         # html_content = self.page.content()
         soup = BeautifulSoup(self.html_content, 'lxml')
 
-        result =  soup.find("div", { "id": self.id}).text
+        result =  soup.find("div", { "id": self.element_id}).text
         if "oops" in result:
             self.errors.append(NotFound404Error(
                                 "Aba com erro 404",
@@ -88,11 +91,10 @@ class TabProcessor:
                                 .replace(")", "")\
                                 .replace(".", "")
             tab_doc_num = int(tab_doc_num)
+            return tab_doc_num
         except ValueError:
             print(
 f"[red]Não foi possível retirar o número de documentos da aba {self.name}[/]")
-        finally:
-            return tab_doc_num
 
     def get_page_num(self):
         try:
@@ -126,11 +128,11 @@ f"[red]Número de documentos na última página não pode ser calculado para aba
             return None
 
     async def get_locator(self, page):
-        locator = page.locator(f"id={self.id}")
+        locator = page.locator(f"id={self.element_id}")
         return locator
 
     async def is_it_active(self, page):
-        aba_el = await find_1st_el_on_page(page, "div", attributes={"id": self.id})
+        aba_el = await find_1st_el_on_page(page, "div", attributes={"id": self.element_id})
         is_active = True if "ativo" in aba_el.get("class") else False
         return is_active
 #endregion Tab Data Class

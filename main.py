@@ -68,7 +68,8 @@ async def get_tab_info():
             if errors:
                 print(f"[red]Erros na aba {tab}[/]")
 
-        browser.close()
+        # await asyncio.sleep(10000)
+        await browser.close()
         print(f"Fechando navegador.")
     return tab_info
 #endregion get tab info
@@ -91,7 +92,7 @@ def main(
     ic(pipeline)
 
     if pipeline:
-        aggregated_results = asyncio.run(main_pipelined(pipeline, tabs_info))
+        aggregated_results = asyncio.run(main_pipelined(pipeline))
         header = aggregated_results[0].keys()
         load_sync.save_to_csv(aggregated_results, header)
     else:
@@ -102,7 +103,6 @@ def main(
 #region main pipelined
 async def main_pipelined(
         pipeline: list[dict],
-        tabs_info: dict
     ):
     ic(locals())
 
@@ -114,13 +114,15 @@ async def main_pipelined(
             viewport={"width": 960, "height": 1080}
         )
 
-        semaphore = asyncio.Semaphore(10)
+        semaphore = asyncio.Semaphore(3)
         tasks = []
+        # TODO rethink on how to limit the number of simultaneous tasks
+        # await for maybe?
         async with asyncio.TaskGroup() as tg:
             async with semaphore:
                 for item in pipeline:
                     task = tg.create_task(
-                        nav_async.visit_pages(context, item, tabs_info)
+                        nav_async.visit_pages(context, item)
                     )
                     tasks.append(task)
 

@@ -18,7 +18,9 @@ class PageData(BaseModel):
 
 
 class TabData(BaseModel):
+    element_id: str
     name: str | None
+    text: str | None
     locator: typing.Any
     doc_num: int | None
     page_num: int | None

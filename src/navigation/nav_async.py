@@ -21,42 +21,61 @@ from rich.console import Console
 async def change_to_tab(
         page: playwright.async_api._generated.Page,
         item,
-        tabs_info
     ):
     ic(locals())
 
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
-    # tab_id = item.tab
+    tabs_before = await ext_async.get_info_on_tabs(page)
+    # ic(tabs_before)
+    tab_id = item.tab
     # ic(tab_id)
 
-    # locator = tabs_info[tab_id].locator
-    # ic(vars(locator))
-    # el_selector = locator._impl_obj
+    active_tabs_before = [
+        tabs_before['acordaos_1'].is_active,
+        tabs_before['acordaos_2'].is_active,
+        tabs_before['decisoes_monocraticas'].is_active,
+    ]
 
-    # locator = await page.locator(el_selector)
-    # await locator.click()
+    element_id = tabs_before[tab_id].element_id
+    await page.locator(f"#{element_id}").click()
 
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
+    while True:
+        print("="*100)
+        await asyncio.sleep(1000)
+        tabs_after = await ext_async.get_info_on_tabs(page)
+        # ic(tabs_after)
+        active_tabs_after = [
+            tabs_after['acordaos_1'].is_active,
+            tabs_after['acordaos_2'].is_active,
+            tabs_after['decisoes_monocraticas'].is_active,
+        ]
 
-    ic("stopped here")
+        tab_1_equal = active_tabs_before[0] == active_tabs_after[0]
+        # ic(tab_1_equal)
+        tab_2_equal = active_tabs_before[1] == active_tabs_after[1]
+        # ic(tab_2_equal)
+        tab_3_equal = not active_tabs_before[2] == active_tabs_after[2]
+        # ic(tab_3_equal)
 
-    # tabs = await ext_async.get_info_on_tabs(page)
-    # proxima_aba = tabs["Next"]["Locator"]
-    # nome_proxima_aba = tabs["Next"]["Name"]
-    # if proxima_aba is None:
-    #     return
+        # ic(tab_1_equal and tab_2_equal and tab_3_equal)
+        ic(not (tab_1_equal and tab_2_equal and tab_3_equal))
+        if not (tab_1_equal and tab_2_equal and tab_3_equal):
+            break
+        ...
 
-    # print(f"Mudando para próxima aba: [blue]{nome_proxima_aba}[/]")
-    # proxima_aba.click()
+
+    print("out of loop")
+
+    ...
 
 
 #region visit pages
 async def visit_pages(
     context,
     item,
-    tabs_info
     ):
     ic(locals())
 
@@ -69,7 +88,10 @@ async def visit_pages(
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
     # TODO change to correct tab
-    await change_to_tab(page, item, tabs_info)
+    await change_to_tab(page, item)
+    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+
+    # await asyncio.sleep(10000)
 
     await wait_for_page_to_change_document_number(page, item.current_page_number)
     await paginate(page, item)
