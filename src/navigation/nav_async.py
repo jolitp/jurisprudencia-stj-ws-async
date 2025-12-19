@@ -18,8 +18,10 @@ from rich.console import Console
 
 
 #region visit pages
-async def visit_pages(context, item):
+async def visit_pages(context, item, delay: float):
     ic(locals())
+
+    asyncio.sleep(delay)
 
     page = await context.new_page()
 
@@ -30,6 +32,17 @@ async def visit_pages(context, item):
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
     # TODO check search config for which tabs to get
+    should_get_from_tab = {
+        "acordaos_1": C.SEARCH_TERMS["ACORDAOS_1"],
+        "acordaos_2": C.SEARCH_TERMS["ACORDAOS_2"],
+        "decisoes_monocraticas": C.SEARCH_TERMS["DECISOES_MONOCRATICAS"],
+    }
+
+    # TODO filter from pipeline
+    # TODO move it before spawining windows
+    if not should_get_from_tab[item.tab]:
+        return
+
     # TODO change to correct tab
 
     await wait_for_page_to_change_document_number(page, item.current_page_number)

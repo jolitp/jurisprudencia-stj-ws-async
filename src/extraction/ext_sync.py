@@ -81,7 +81,7 @@ class TabProcessor:
             self.errors.append(NotFound404Error(
                                 "Aba com erro 404",
                                 f"texto na aba:\n{result}"))
-            result = (None, "404 page")
+            result = None
             print(f"[red]Erro 404 não encontrado em aba {self.name}[/]")
         return result
 
@@ -138,7 +138,8 @@ f"[red]Número de documentos na última página não pode ser calculado para aba
 
     def is_it_active(self):
         aba_el = find_1st_el_on_page(self.page, "div", attributes={"id": self.id})
-        return True if "ativo" in aba_el.get("class") else False
+        is_active = True if "ativo" in aba_el.get("class") else False
+        return is_active
 #endregion Tab Data Class
 
 

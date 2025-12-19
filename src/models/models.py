@@ -18,10 +18,10 @@ class PageData(BaseModel):
 
 
 class TabData(BaseModel):
-    name: str
+    name: str | None
     locator: typing.Any
-    doc_num: int
-    page_num: int
-    doc_num_last_page: int
-    is_active: int
-    errors: list
+    doc_num: int | None
+    page_num: int | None
+    doc_num_last_page: int | None
+    is_active: int | None
+    errors: list | None

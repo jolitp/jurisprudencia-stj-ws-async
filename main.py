@@ -1,3 +1,4 @@
+import math
 import src.config.constants as C
 from src.loading import load_sync
 from src.extraction import ext_sync
@@ -86,15 +87,20 @@ def main(
     ic(tabs_info)
     pipeline = create_pipeline(tabs_info)
     ic(pipeline)
-    exit()
-    aggregated_results = asyncio.run(main_pipelined(pipeline))
-    header = aggregated_results[0].keys()
-    load_sync.save_to_csv(aggregated_results, header)
+
+    if pipeline:
+        aggregated_results = asyncio.run(main_pipelined(pipeline))
+        header = aggregated_results[0].keys()
+        load_sync.save_to_csv(aggregated_results, header)
+    else:
+        print("[red]não há nenhum documento em nenhuma das abas.[/]")
 #endregion main command
 
 
 #region main pipelined
-async def main_pipelined(pipeline):
+async def main_pipelined(
+        pipeline: list[dict]
+    ):
     ic(locals())
 
     async with async_playwright() as pw:
@@ -104,13 +110,33 @@ async def main_pipelined(pipeline):
         context = await browser.new_context(
             viewport={"width": 960, "height": 1080}
         )
+
+        semaphore = asyncio.Semaphore(10)
         tasks = []
         async with asyncio.TaskGroup() as tg:
-            for item in pipeline:
-                task = tg.create_task(nav_async.visit_pages(context, item))
-                tasks.append(task)
+            def chunk_list(lst, n):
+                """Yield successive n-sized chunks from lst."""
+                for i in range(0, len(lst), n):
+                    yield lst[i:i + n]
+
+            # chunk_size = math.ceil(len(pipeline) / 3)
+            chunk_size = 3
+            pipeline_chunks = list(chunk_list(pipeline, chunk_size))
+
+            ic(len(pipeline_chunks))
+            for pipeline_chunk in list(pipeline_chunks):
+                ic(len(list(pipeline_chunk)))
+
+                delay = random.uniform(1, 3)
+                for item in pipeline_chunk:
+                    task = tg.create_task(
+                        nav_async.visit_pages(context, item, delay)
+                    )
+                    tasks.append(task)
 
         results = [task.result() for task in tasks]
+        ic(results)
+        ic(len(results))
 
         aggregated_results = []
         for result in results:
@@ -133,24 +159,35 @@ def create_pipeline(
     for key, value in tabs_info.items():
         number_of_pages = tabs_info[key].page_num
 
-        for current_page_number in range(0, number_of_pages):
-        #region
-            start_doc_number = (current_page_number * C.DOCS_PER_PAGE) + 1
-            if current_page_number == number_of_pages:
-                doc_num_last_page = tabs_info[key].doc_num_last_page
-                end_doc_number = start_doc_number + doc_num_last_page
-            else:
-                end_doc_number = start_doc_number + C.DOCS_PER_PAGE - 1
+        if number_of_pages == 0:
+            continue
 
-            data = models.Pipeline(
-                tab = key,
-                current_page_number = current_page_number + 1,
-                start_doc_number = start_doc_number,
-                end_doc_number = end_doc_number,
-            )
-            pipeline.append(data)
-        #endregion
+        try:
+            for current_page_number in range(0, number_of_pages):
+            #region
+                start_doc_number = (current_page_number * C.DOCS_PER_PAGE) + 1
+                if current_page_number == number_of_pages:
+                    doc_num_last_page = tabs_info[key].doc_num_last_page
+                    end_doc_number = start_doc_number + doc_num_last_page
+                else:
+                    end_doc_number = start_doc_number + C.DOCS_PER_PAGE - 1
 
+                data = models.Pipeline(
+                    tab = key,
+                    current_page_number = current_page_number + 1,
+                    start_doc_number = start_doc_number,
+                    end_doc_number = end_doc_number,
+                )
+                pipeline.append(data)
+            #endregion
+        except TypeError as e:
+            print(
+"[red]Não foi possível completar a execução. Número de páginas não foi encontrado[/]")
+            ic(locals())
+            ic(repr(e))
+            exit()
+
+    ic(locals())
     return pipeline
 #endregion create pipeline
 
