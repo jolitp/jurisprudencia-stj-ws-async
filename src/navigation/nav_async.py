@@ -29,6 +29,9 @@ async def visit_pages(context, item):
     await fill_form(page)
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
+    # TODO check search config for which tabs to get
+    # TODO change to correct tab
+
     await wait_for_page_to_change_document_number(page, item.current_page_number)
     await paginate(page, item)
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)

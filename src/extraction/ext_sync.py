@@ -145,7 +145,7 @@ f"[red]Número de documentos na última página não pode ser calculado para aba
 #region get info on tabs
 def get_info_on_tabs(
         page: playwright.sync_api._generated.Page
-    ):
+    ) -> dict[ str, models.TabData ]:
     ic(locals())
 
     page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
