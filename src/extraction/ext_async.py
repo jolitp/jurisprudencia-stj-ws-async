@@ -219,6 +219,7 @@ async def find_all_elements_on_page(
     ):
     ic(locals())
 
+    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
     html_content = await page.content()
     soup = BeautifulSoup(html_content, 'lxml')
     element_found = soup.find_all(element_tag, element_attributes)
@@ -232,11 +233,13 @@ async def find_all_elements_on_page(
 
 #region    pegar documentos
 async def pegar_documentos(
-        page: playwright.async_api._generated.Page
+        page: playwright.async_api._generated.Page,
+        item
     ):
     ic(locals())
 
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    # await page.wait_for_navigation() # puppetier method?
 
     el_attrs = {"class": "documento"}
     documentos = await find_all_elements_on_page(page, element_attributes=el_attrs)

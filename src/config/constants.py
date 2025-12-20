@@ -26,3 +26,6 @@ DIRS = {
     "debug": "debug",
     "screenshots": "screenshots"
 }
+
+WINDOW_NUMBER = 1
+SHOW_WINDOWS = False

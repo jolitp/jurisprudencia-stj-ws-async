@@ -1,4 +1,3 @@
-import math
 import src.config.constants as C
 from src.loading import load_sync
 from src.extraction import ext_async
@@ -9,9 +8,7 @@ from src.models import models
 from src.utils import browser_utils as bu
 
 import asyncio
-import random
 import typer
-import random
 # from playwright.sync_api import sync_playwright
 from playwright.async_api import async_playwright
 # from rich.traceback import install # using typer's rich, configure there
@@ -39,13 +36,14 @@ app = typer.Typer(pretty_exceptions_show_locals=False)
 
 
 #region get tab info
-async def get_tab_info():
+async def visit_page_to_get_tab_info():
     ic(locals())
     # do a preliminary run to get info on number of documents of each tab
     tab_info = {}
     async with async_playwright() as pw:
+        print("Abrindo janela do navegador.")
         browser = await pw.firefox.launch(
-            headless=False, # toggle
+            headless=C.SHOW_WINDOWS,
         )
         context = await browser.new_context(
             viewport={"width": 960, "height": 1080},
@@ -58,7 +56,7 @@ async def get_tab_info():
         print(f"Navegando para a URL: {C.URL}")
         await page.goto(C.URL, timeout = 0)
 
-        await nav_async.fill_form(page)
+        await nav_async.fill_form(page, None)
         tab_info = await ext_async.get_info_on_tabs(page)
         ic(tab_info)
 
@@ -67,6 +65,7 @@ async def get_tab_info():
             errors = tab_info[tab].errors
             if errors:
                 print(f"[red]Erros na aba {tab}[/]")
+        # for tab in tabs:
 
         # await asyncio.sleep(10000)
         await browser.close()
@@ -78,15 +77,22 @@ async def get_tab_info():
 #region main command
 @app.command()
 def main(
-    debug: bool = False
+    debug: bool = False,
+    numero_de_janelas_sumultaneas: int = 1,
+    mostrar_janelas: bool = False
 ):
-    ic(locals())
-
     ic.disable()
     if debug:
         ic.enable()
 
-    tabs_info = asyncio.run(get_tab_info())
+    C.WINDOW_NUMBER = numero_de_janelas_sumultaneas
+    C.SHOW_WINDOWS = mostrar_janelas
+
+    ic(locals())
+
+    load_sync.create_directories()
+
+    tabs_info = asyncio.run(visit_page_to_get_tab_info())
     ic(tabs_info)
     pipeline = create_pipeline(tabs_info)
     ic(pipeline)
@@ -108,20 +114,20 @@ async def main_pipelined(
 
     async with async_playwright() as pw:
         browser = await pw.firefox.launch(
-            headless=False,
-        )
-        context = await browser.new_context(
-            viewport={"width": 960, "height": 1080}
+            headless=C.SHOW_WINDOWS,
         )
 
         tasks = []
         async with asyncio.TaskGroup() as tg:
             for item in pipeline:
                 task = tg.create_task(
-                    nav_async.visit_pages(context, item)
+                    nav_async.visit_pages(browser, item)
                 )
                 tasks.append(task)
+            # for item in pipeline:
+        # async with asyncio.TaskGroup() as tg:
 
+        print("Coletando resultados")
         results = [task.result() for task in tasks]
         ic(len(results))
 
@@ -139,7 +145,7 @@ async def main_pipelined(
 
 #region create pipeline
 def create_pipeline(
-    tabs_info: dict[str, models.TabData],
+        tabs_info: dict[str, models.TabData],
     ):
     ic(locals())
 
@@ -192,6 +198,5 @@ def create_pipeline(
 
 #region
 if __name__ == "__main__":
-    load_sync.create_directories()
     app()
 #endregion

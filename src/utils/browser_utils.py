@@ -1,3 +1,4 @@
+import src.config.constants as C
 import random
 
 
@@ -35,3 +36,20 @@ def random_user_agent():
     return random.choice(agent_list)
     ...
 #endregion random user agent
+
+
+#region request curncurrency limit decorator
+import asyncio
+from functools import wraps
+def request_concurrency_limit_decorator(limit=C.WINDOW_NUMBER):
+    # Bind the default event loop
+    sem = asyncio.Semaphore(limit)
+
+    def executor(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            async with sem:
+                return await func(*args, **kwargs)
+        return wrapper
+    return executor
+#endregion request curncurrency limit decorator

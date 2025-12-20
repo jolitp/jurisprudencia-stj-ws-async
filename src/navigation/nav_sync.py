@@ -1,12 +1,4 @@
 from ..config import constants as C
-from ..config.parsing import search_config
-from src.extraction import ext_async
-
-import playwright.sync_api._generated
-
-import asyncio
-
-from icecream import ic
 from rich import print
 
 #region annouce fill form
@@ -28,42 +20,4 @@ def announce_fill_form():
     if C.SEARCH_TERMS["DECISOES_MONOCRATICAS"]:
         print("Decisões Monocráticas")
 #endregion annouce fill form
-
-
-#region fill form
-def fill_form(
-        page: playwright.sync_api._generated.Page,
-    ):
-    ic(locals())
-
-    announce_fill_form()
-
-    pesquisa_avancada_xpath = search_config["pesquisa_avancada_xpath"]
-    botao_buscar_xpath = search_config["botao_buscar_xpath"]
-    criterio_de_pesquisa_xpath = search_config["criterio_de_pesquisa_xpath"]
-    data_de_julgamento_inicial_xpath = search_config["data_de_julgamento_inicial_xpath"]
-    data_de_julgamento_final_xpath = search_config["data_de_julgamento_final_xpath"]
-    # data_de_publicacao_inicial_xpath = search_config["data_de_publicação_inicial_xpath"]
-    # data_de_publicacao_final_xpath = search_config["data_de_publicação_final_xpath"]
-
-    page.locator(criterio_de_pesquisa_xpath)\
-        .fill(C.SEARCH_TERMS["PESQUISA"])
-    page.locator(pesquisa_avancada_xpath)\
-        .click()
-
-    page.locator(data_de_julgamento_inicial_xpath)\
-        .fill(C.SEARCH_TERMS["DATA_DE_JULGAMENTO_INICIAL"])
-    page.locator(data_de_julgamento_final_xpath)\
-        .fill(C.SEARCH_TERMS["DATA_DE_JULGAMENTO_FINAL"])
-
-    # page.locator(data_de_publicacao_inicial_xpath)\
-    #     .fill(C.PESQUISA["DATA_DE_PUBLICACAO_INICIAL"])
-    # page.locator(data_de_publicacao_final_xpath)\
-    #     .fill(C.PESQUISA["DATA_DE_PUBLICACAO_FINAL"])
-
-    page.locator(criterio_de_pesquisa_xpath)\
-        .click() # fix popup appearing
-
-    page.locator(botao_buscar_xpath).click()
-#endregion fill form
 

@@ -4,10 +4,11 @@ import src.config.constants as C
 # from src.extraction import ext_sync
 from src.extraction import ext_async
 from src.extraction import ext_sync
-# from src.navigation import nav_sync
+from src.navigation import nav_sync
 from src.config import constants as C
 from src.config.parsing import search_config
 from src.models import models
+from src.utils import browser_utils as bu
 
 import asyncio
 import time
@@ -18,12 +19,15 @@ from rich import print
 from rich.console import Console
 
 
+#region change to  tab
 async def change_to_tab(
         page: playwright.async_api._generated.Page,
         item,
     ):
     ic(locals())
+    page_number = item.current_page_number
 
+    print(f"Mudando para a aba {item.tab}")
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
     tabs_before = await ext_async.get_info_on_tabs(page)
@@ -42,78 +46,75 @@ async def change_to_tab(
 
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
-    while True:
-        print("="*100)
-        await asyncio.sleep(1000)
-        tabs_after = await ext_async.get_info_on_tabs(page)
-        # ic(tabs_after)
-        active_tabs_after = [
-            tabs_after['acordaos_1'].is_active,
-            tabs_after['acordaos_2'].is_active,
-            tabs_after['decisoes_monocraticas'].is_active,
-        ]
+    count = 0
+    console = Console()
+    with console.status(f""" Mudando de aba
+[yellow]Aba {tab_id}[/] - [yellow]Página {page_number}[/]."""):
+        while True:
+            await asyncio.sleep(1)
+            count += 1
+            tabs_after = await ext_async.get_info_on_tabs(page)
+            active_tabs_after = [
+                tabs_after['acordaos_1'].is_active,
+                tabs_after['acordaos_2'].is_active,
+                tabs_after['decisoes_monocraticas'].is_active,
+            ]
 
-        tab_1_equal = active_tabs_before[0] == active_tabs_after[0]
-        # ic(tab_1_equal)
-        tab_2_equal = active_tabs_before[1] == active_tabs_after[1]
-        # ic(tab_2_equal)
-        tab_3_equal = not active_tabs_before[2] == active_tabs_after[2]
-        # ic(tab_3_equal)
+            # tab_1_equal = active_tabs_before[0] == active_tabs_after[0]
+            # tab_2_equal = active_tabs_before[1] == active_tabs_after[1]
+            # tab_3_equal = active_tabs_before[2] == active_tabs_after[2]
 
-        # ic(tab_1_equal and tab_2_equal and tab_3_equal)
-        ic(not (tab_1_equal and tab_2_equal and tab_3_equal))
-        if not (tab_1_equal and tab_2_equal and tab_3_equal):
-            break
-        ...
+            # ic(not (tab_1_equal and tab_2_equal and tab_3_equal))
+            # if not (tab_1_equal and tab_2_equal and tab_3_equal):
+            #     break
 
-
-    print("out of loop")
-
+            ic(tabs_after[tab_id].is_active)
+            if tabs_after[tab_id].is_active:
+                break
+            ...
+        # while True:
+    # with console.status(
+    print(f"Na aba {item.tab} agora. Em {count} segundos.")
     ...
+#endregion change to tab
 
-
-import asyncio
-from functools import wraps
-def request_concurrency_limit_decorator(limit=3):
-    # Bind the default event loop
-    sem = asyncio.Semaphore(limit)
-
-    def executor(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            async with sem:
-                return await func(*args, **kwargs)
-        return wrapper
-    return executor
 
 
 #region visit pages
-@request_concurrency_limit_decorator()
+@bu.request_concurrency_limit_decorator()
 async def visit_pages(
-    context,
-    item,
+        browser,
+        item,
     ):
     ic(locals())
+    current_tab = item.tab
+    current_page = item.current_page_number
+    print("Abrindo nova janela do navegador.")
+    print(f"Executando aba [blue]{current_tab}[/] página [blue]{current_page}[/]")
 
+    context = await browser.new_context(
+        viewport={"width": 960, "height": 1080},
+        user_agent=bu.random_user_agent(),
+        geolocation=bu.random_geolocation(),
+        permissions=["geolocation"]
+    )
     page = await context.new_page()
 
     await page.goto(C.URL)
 
     start_time = time.perf_counter()
-    await fill_form(page)
-    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    await fill_form(page, item)
+    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
 
-    # TODO change to correct tab
     await change_to_tab(page, item)
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
-    # await asyncio.sleep(10000)
 
-    await wait_for_page_to_change_document_number(page, item.current_page_number)
+    await wait_for_page_to_change_document_number(page, item)
     await paginate(page, item)
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
-    docs = await ext_async.pegar_documentos(page)
+    docs = await ext_async.pegar_documentos(page, item)
 
     data = []
     for doc in docs:
@@ -129,6 +130,9 @@ async def visit_pages(
         data = data,
         elapsed_time = elapsed_time
     )
+    print(f"Fim da execução da aba [blue]{current_tab}[/] página [blue]{current_page}[/]")
+    print("fechando página")
+    page.close()
     return result
     ...
 #endregion
@@ -137,62 +141,82 @@ async def visit_pages(
 #region fill form
 async def fill_form(
     page: playwright.async_api._generated.Page,
+    item
     ):
     ic(locals())
 
-    pesquisa_avancada_xpath = search_config["pesquisa_avancada_xpath"]
-    botao_buscar_xpath = search_config["botao_buscar_xpath"]
-    criterio_de_pesquisa_xpath = search_config["criterio_de_pesquisa_xpath"]
-    data_de_julgamento_inicial_xpath = search_config["data_de_julgamento_inicial_xpath"]
-    data_de_julgamento_final_xpath = search_config["data_de_julgamento_final_xpath"]
-    # data_de_publicacao_inicial_xpath = search_config["data_de_publicação_inicial_xpath"]
-    # data_de_publicacao_final_xpath = search_config["data_de_publicação_final_xpath"]
+    nav_sync.announce_fill_form()
 
-    await page.locator(criterio_de_pesquisa_xpath)\
-        .fill(C.SEARCH_TERMS["PESQUISA"])
-    await page.locator(pesquisa_avancada_xpath)\
-        .click()
+    if item:
+        tab = item.tab
+        page_number = item.current_page_number
+        message = f""" Preenchendo formulário de pesquisa
+[yellow]Aba {tab}[/] - [yellow]Página {page_number}[/]."""
+    else:
+        message = "Preenchendo formulário de pesquisa"
 
-    await page.locator(data_de_julgamento_inicial_xpath)\
-        .fill(C.SEARCH_TERMS["DATA_DE_JULGAMENTO_INICIAL"])
-    await page.locator(data_de_julgamento_final_xpath)\
-        .fill(C.SEARCH_TERMS["DATA_DE_JULGAMENTO_FINAL"])
+    console = Console()
+    with console.status(message):
 
-    # page.locator(data_de_publicacao_inicial_xpath)\
-    #     .fill(C.PESQUISA["DATA_DE_PUBLICACAO_INICIAL"])
-    # page.locator(data_de_publicacao_final_xpath)\
-    #     .fill(C.PESQUISA["DATA_DE_PUBLICACAO_FINAL"])
+        pesquisa_avancada_xpath = search_config["pesquisa_avancada_xpath"]
+        botao_buscar_xpath = search_config["botao_buscar_xpath"]
+        criterio_de_pesquisa_xpath = search_config["criterio_de_pesquisa_xpath"]
+        data_de_julgamento_inicial_xpath = search_config["data_de_julgamento_inicial_xpath"]
+        data_de_julgamento_final_xpath = search_config["data_de_julgamento_final_xpath"]
+        # data_de_publicacao_inicial_xpath = search_config["data_de_publicação_inicial_xpath"]
+        # data_de_publicacao_final_xpath = search_config["data_de_publicação_final_xpath"]
 
-    await page.locator(criterio_de_pesquisa_xpath)\
-        .click() # fix popup appearing
+        await page.locator(criterio_de_pesquisa_xpath)\
+            .fill(C.SEARCH_TERMS["PESQUISA"])
+        await page.locator(pesquisa_avancada_xpath)\
+            .click()
 
-    await page.locator(botao_buscar_xpath).click()
+        await page.locator(data_de_julgamento_inicial_xpath)\
+            .fill(C.SEARCH_TERMS["DATA_DE_JULGAMENTO_INICIAL"])
+        await page.locator(data_de_julgamento_final_xpath)\
+            .fill(C.SEARCH_TERMS["DATA_DE_JULGAMENTO_FINAL"])
+
+        # page.locator(data_de_publicacao_inicial_xpath)\
+        #     .fill(C.PESQUISA["DATA_DE_PUBLICACAO_INICIAL"])
+        # page.locator(data_de_publicacao_final_xpath)\
+        #     .fill(C.PESQUISA["DATA_DE_PUBLICACAO_FINAL"])
+
+        await page.locator(criterio_de_pesquisa_xpath)\
+            .click() # fix popup appearing
+
+        await page.locator(botao_buscar_xpath).click()
 #endregion
 
 
 #region wait for page to change document number
 async def wait_for_page_to_change_document_number(
     page: playwright.async_api._generated.Page,
-    page_nubmer,
+    item,
     ):
     ic(locals())
+    page_number = item.current_page_number
+    tab = item.tab
 
     await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
 
+    # await page.locator("#qtdDocsPagina").wait_for_element_state("visible")
+    handle = await page.query_selector("id=qtdDocsPagina")
+    await handle.wait_for_element_state("visible")
     await page.locator("#qtdDocsPagina").select_option(str(C.DOCS_PER_PAGE))
 
     count = 0
     console = Console()
-    with console.status(
-f"[yellow]Página {page_nubmer}[/]. Mudando o número de [cyan]Docs/Pág[/] de [cyan]10[/] para [cyan]50[/]."):
+    m1 = f"[cyan]Docs/Pág[/] de [cyan]10[/] para [cyan]{C.DOCS_PER_PAGE}[/]"
+    message = f""" Mudando o número de {m1}.
+[yellow]Aba {tab}[/] - [yellow]Página {page_number}[/]."""
+    with console.status(message):
         while True:
-            # TODO check against the remaining number of documents in the last page
-            time.sleep(1)
+            await asyncio.sleep(1)
             count += 1
 
             await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
             n_docs_ult_pag = await ext_async.get_number_of_docs_in_last_page(page)
-            n_docs_pag_atual = len(await ext_async.pegar_documentos(page))
+            n_docs_pag_atual = len(await ext_async.pegar_documentos(page, item))
 
             if n_docs_pag_atual == C.DOCS_PER_PAGE\
             or n_docs_pag_atual == n_docs_ult_pag\
@@ -201,37 +225,48 @@ f"[yellow]Página {page_nubmer}[/]. Mudando o número de [cyan]Docs/Pág[/] de [
             ...
         ...
     ...
+    print(f"Com {C.DOCS_PER_PAGE} agora. em {count} segundos.")
 #endregion
 
 
 #region    Paginate
 async def paginate(
-    page: playwright.sync_api._generated.Page,
-    item: dict
+        page: playwright.sync_api._generated.Page,
+        item: dict
     ):
     ic(locals())
-
+    tab = item.tab
+    page_number = item.current_page_number
+    print(f"Mudando para a página {page_number}")
     extepcted_initial_start_doc_number = item.start_doc_number
 
     await page.evaluate(f"navegaForm('{extepcted_initial_start_doc_number}');")
 
-    while True:
-        await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
-        await asyncio.sleep(1)
+    count = 0
+    console = Console()
+    message = f""" Mudando para documento número {extepcted_initial_start_doc_number}.
+[yellow]Aba {tab}[/] - [yellow]Página {page_number}[/]."""
+    with console.status(message):
+        while True:
+            await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+            await asyncio.sleep(1)
+            count += 1
 
-        docs_el = await ext_async.pegar_documentos(page)
-        actual_start_doc_on_page = docs_el[0]
-        actual_start_doc_number: str = actual_start_doc_on_page\
-            .find("div", { "class": "clsNumDocumento" }).text.strip()
-        actual_start_doc_number_split = actual_start_doc_number.split(' ')
-        actual_start_doc_number: int = int(actual_start_doc_number_split[1])
+            docs_el = await ext_async.pegar_documentos(page, item)
+            actual_start_doc_on_page = docs_el[0]
+            actual_start_doc_number: str = actual_start_doc_on_page\
+                .find("div", { "class": "clsNumDocumento" }).text.strip()
+            actual_start_doc_number_split = actual_start_doc_number.split(' ')
+            actual_start_doc_number: int = int(actual_start_doc_number_split[1])
 
-        match_start = actual_start_doc_number == extepcted_initial_start_doc_number
+            match_start = actual_start_doc_number == extepcted_initial_start_doc_number
 
-        ic(match_start)
-        if match_start:
-            print("Fim da paginação")
-            break
+            ic(match_start)
+            if match_start:
+                print("Fim da paginação")
+                break
+            ...
         ...
     ...
+    print(f"página número {page_number} agora. Em {count} segundos.")
 #endregion Paginate
