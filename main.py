@@ -41,9 +41,12 @@ async def visit_page_to_get_tab_info():
     # do a preliminary run to get info on number of documents of each tab
     tab_info = {}
     async with async_playwright() as pw:
-        print("Abrindo janela do navegador.")
+        if C.SHOW_WINDOWS:
+            print("Abrindo janela do navegador.")
+        else:
+            print("Abrindo janela do navegador em plano de fundo.")
         browser = await pw.firefox.launch(
-            headless=C.SHOW_WINDOWS,
+            headless= not C.SHOW_WINDOWS,
         )
         context = await browser.new_context(
             viewport={"width": 960, "height": 1080},
@@ -78,14 +81,15 @@ async def visit_page_to_get_tab_info():
 @app.command()
 def main(
     debug: bool = False,
-    numero_de_janelas_sumultaneas: int = 1,
+    numero_de_janelas: int = 1,
     mostrar_janelas: bool = False
 ):
     ic.disable()
     if debug:
         ic.enable()
 
-    C.WINDOW_NUMBER = numero_de_janelas_sumultaneas
+    C.WINDOW_NUMBER = numero_de_janelas
+    # print(f"C.WINDOW_NUMBER {C.WINDOW_NUMBER}")
     C.SHOW_WINDOWS = mostrar_janelas
 
     ic(locals())
@@ -114,7 +118,7 @@ async def main_pipelined(
 
     async with async_playwright() as pw:
         browser = await pw.firefox.launch(
-            headless=C.SHOW_WINDOWS,
+            headless= not C.SHOW_WINDOWS,
         )
 
         tasks = []
@@ -124,8 +128,6 @@ async def main_pipelined(
                     nav_async.visit_pages(browser, item)
                 )
                 tasks.append(task)
-            # for item in pipeline:
-        # async with asyncio.TaskGroup() as tg:
 
         print("Coletando resultados")
         results = [task.result() for task in tasks]

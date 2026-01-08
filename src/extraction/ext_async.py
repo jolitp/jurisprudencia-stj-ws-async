@@ -144,7 +144,10 @@ async def get_info_on_tabs(
     ) -> dict[ str, models.TabData ]:
     ic(locals())
 
-    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    try:
+        await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    except TimeoutError as e:
+        print(repr(e))
 
     html_content = await page.content()
 
@@ -200,7 +203,7 @@ async def get_total_number_of_documents(
     ):
     ic(locals())
 
-    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
 
     el_attrs = { "class": "clsNumDocumento" }
     await page.locator(".clsNumDocumento").first.wait_for(state="visible")
@@ -219,7 +222,6 @@ async def find_all_elements_on_page(
     ):
     ic(locals())
 
-    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
     html_content = await page.content()
     soup = BeautifulSoup(html_content, 'lxml')
     element_found = soup.find_all(element_tag, element_attributes)
@@ -232,16 +234,29 @@ async def find_all_elements_on_page(
 
 
 #region    pegar documentos
-async def pegar_documentos(
+async def get_docs(
         page: playwright.async_api._generated.Page,
-        item
     ):
     ic(locals())
 
-    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
-    # await page.wait_for_navigation() # puppetier method?
+    print("Trying to get docs on the page")
+    await page.wait_for_load_state("load", timeout=C.TIMEOUT)
+    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
 
     el_attrs = {"class": "documento"}
+
+    path = f"{C.DIRS["save_root"]}/{C.DIRS["current_execution"]}/{C.DIRS["screenshots"]}"
+    path_before = f"{path}/01_before.png"
+    page.screenshot(path=path_before)
+    try:
+        await page.wait_for_selector(".documento",
+                                            state='attached',
+                                            timeout=C.TIMEOUT)
+    except TimeoutError as e:
+        path_after = f"{path}/02_after.png"
+        page.screenshot(path=path_after)
+        print(e)
+
     documentos = await find_all_elements_on_page(page, element_attributes=el_attrs)
     return documentos
 #endregion pegar documentos
@@ -253,7 +268,7 @@ async def get_number_of_pages_to_traverse(
     ):
     ic(locals())
 
-    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
 
     el_attrs = { "class": "clsNumDocumento" }
     await page.locator(".clsNumDocumento").first.wait_for(state="visible")

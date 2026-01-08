@@ -41,9 +41,10 @@ def random_user_agent():
 #region request curncurrency limit decorator
 import asyncio
 from functools import wraps
-def request_concurrency_limit_decorator(limit=C.WINDOW_NUMBER):
+def request_concurrency_limit_decorator():
     # Bind the default event loop
-    sem = asyncio.Semaphore(limit)
+    # print(f"C.WINDOW_NUMBER {C.WINDOW_NUMBER}")
+    sem = asyncio.Semaphore(C.WINDOW_NUMBER)
 
     def executor(func):
         @wraps(func)

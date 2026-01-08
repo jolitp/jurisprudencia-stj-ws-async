@@ -28,23 +28,15 @@ async def change_to_tab(
     page_number = item.current_page_number
 
     print(f"Mudando para a aba {item.tab}")
-    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
 
     tabs_before = await ext_async.get_info_on_tabs(page)
-    # ic(tabs_before)
     tab_id = item.tab
-    # ic(tab_id)
-
-    active_tabs_before = [
-        tabs_before['acordaos_1'].is_active,
-        tabs_before['acordaos_2'].is_active,
-        tabs_before['decisoes_monocraticas'].is_active,
-    ]
 
     element_id = tabs_before[tab_id].element_id
     await page.locator(f"#{element_id}").click()
 
-    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
 
     count = 0
     console = Console()
@@ -52,32 +44,19 @@ async def change_to_tab(
 [yellow]Aba {tab_id}[/] - [yellow]Página {page_number}[/]."""):
         while True:
             await asyncio.sleep(1)
+            start_time = time.perf_counter()
             count += 1
             tabs_after = await ext_async.get_info_on_tabs(page)
-            active_tabs_after = [
-                tabs_after['acordaos_1'].is_active,
-                tabs_after['acordaos_2'].is_active,
-                tabs_after['decisoes_monocraticas'].is_active,
-            ]
 
-            # tab_1_equal = active_tabs_before[0] == active_tabs_after[0]
-            # tab_2_equal = active_tabs_before[1] == active_tabs_after[1]
-            # tab_3_equal = active_tabs_before[2] == active_tabs_after[2]
-
-            # ic(not (tab_1_equal and tab_2_equal and tab_3_equal))
-            # if not (tab_1_equal and tab_2_equal and tab_3_equal):
-            #     break
-
+            end_time = time.perf_counter()
+            count += end_time - start_time
             ic(tabs_after[tab_id].is_active)
             if tabs_after[tab_id].is_active:
                 break
-            ...
         # while True:
     # with console.status(
     print(f"Na aba {item.tab} agora. Em {count} segundos.")
-    ...
 #endregion change to tab
-
 
 
 #region visit pages
@@ -89,7 +68,10 @@ async def visit_pages(
     ic(locals())
     current_tab = item.tab
     current_page = item.current_page_number
-    print("Abrindo nova janela do navegador.")
+    if C.SHOW_WINDOWS:
+        print("Abrindo janela do navegador.")
+    else:
+        print("Abrindo janela do navegador em plano de fundo.")
     print(f"Executando aba [blue]{current_tab}[/] página [blue]{current_page}[/]")
 
     context = await browser.new_context(
@@ -107,14 +89,14 @@ async def visit_pages(
     await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
 
     await change_to_tab(page, item)
-    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
 
 
     await wait_for_page_to_change_document_number(page, item)
     await paginate(page, item)
-    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
 
-    docs = await ext_async.pegar_documentos(page, item)
+    docs = await ext_async.get_docs(page)
 
     data = []
     for doc in docs:
@@ -132,9 +114,9 @@ async def visit_pages(
     )
     print(f"Fim da execução da aba [blue]{current_tab}[/] página [blue]{current_page}[/]")
     print("fechando página")
-    page.close()
+    # await page.close()
+    await browser.close()
     return result
-    ...
 #endregion
 
 
@@ -197,7 +179,7 @@ async def wait_for_page_to_change_document_number(
     page_number = item.current_page_number
     tab = item.tab
 
-    await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+    await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
 
     # await page.locator("#qtdDocsPagina").wait_for_element_state("visible")
     handle = await page.query_selector("id=qtdDocsPagina")
@@ -212,12 +194,15 @@ async def wait_for_page_to_change_document_number(
     with console.status(message):
         while True:
             await asyncio.sleep(1)
+            start_time = time.perf_counter()
             count += 1
 
-            await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
+            await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
             n_docs_ult_pag = await ext_async.get_number_of_docs_in_last_page(page)
-            n_docs_pag_atual = len(await ext_async.pegar_documentos(page, item))
+            n_docs_pag_atual = len(await ext_async.get_docs(page))
 
+            end_time = time.perf_counter()
+            count += end_time - start_time
             if n_docs_pag_atual == C.DOCS_PER_PAGE\
             or n_docs_pag_atual == n_docs_ult_pag\
             or n_docs_ult_pag == 0:
@@ -248,12 +233,18 @@ async def paginate(
 [yellow]Aba {tab}[/] - [yellow]Página {page_number}[/]."""
     with console.status(message):
         while True:
-            await page.wait_for_load_state("networkidle", timeout=C.TIMEOUT)
             await asyncio.sleep(1)
             count += 1
 
-            docs_el = await ext_async.pegar_documentos(page, item)
-            actual_start_doc_on_page = docs_el[0]
+            await page.wait_for_load_state("domcontentloaded", timeout=C.TIMEOUT)
+            docs_el = await ext_async.get_docs(page)
+            if docs_el:
+                actual_start_doc_on_page = docs_el[0]
+            else:
+                print(f"""Ao mudar para documento número {extepcted_initial_start_doc_number}
+Não foram encontrados documentos na página.
+Esperando a página carregar os documentos.""")
+                continue
             actual_start_doc_number: str = actual_start_doc_on_page\
                 .find("div", { "class": "clsNumDocumento" }).text.strip()
             actual_start_doc_number_split = actual_start_doc_number.split(' ')
